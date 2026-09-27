@@ -4,11 +4,11 @@ Extraction de texte qui distingue le niveau bloc du balisage en ligne.
 
 BeautifulSoup, avec `get_text(strip=True)` et sans `separator`, concatène les chaînes
 de texte sans rien mettre entre elles : deux nœuds voisins deviennent un seul mot
-(`Informerles publics`). Le remède évident, `get_text(separator=" ")`, insère le
+(`Motscollés`). Le remède évident, `get_text(separator=" ")`, insère le
 séparateur entre *toutes* les chaînes, y compris entre le texte et une balise en
 ligne. Sur `<p>Le mot <b>gras</b>itique</p>` il produit `Le mot gras itique`, alors
-que la source dit un mot unique. Et sur la cible réelle il écrit `1 ère cause` là
-où la source dit `1ère cause`.
+que la source dit un mot unique. Et sur un ordinal en ligne il écrit `1 ère` là où
+la source dit `1<sup>ère</sup>`.
 
 La règle appliquée ici est donc : séparer au franchissement d'un élément de niveau
 bloc, et ne rien ajouter au balisage en ligne. L'espace entre deux mots n'apparaît que
@@ -27,7 +27,7 @@ from bs4.element import (
 
 # Sous-classes de NavigableString que BeautifulSoup exclut de get_text() par
 # défaut et qu'il faut donc exclure ici aussi : un Comment est un NavigableString,
-# un piège qui fait remonter `<!-- picto evenement -->` dans le texte mesuré.
+# un piège qui fait remonter `<!-- marqueur -->` dans le texte mesuré.
 NON_TEXT_NODES = (CData, Comment, Declaration, Doctype, ProcessingInstruction)
 
 BLOCK_TAGS = frozenset({

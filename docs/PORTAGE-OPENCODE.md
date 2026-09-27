@@ -166,27 +166,34 @@ recevoir de séparateur, sous peine de casser la charge utile.
 mots soudés gonflaient aussi chaque phrase, donc `clarity_ratio` était faux, 0,6207 avant contre
 0,5517 après, 18 phrases dans la fenêtre courte de 5 à 25 mots contre 16, et `answer_block_quality`,
 qui pèse 30 % du score, était faux avec lui. Le nombre de phrases, lui, ne bouge pas, 29 avant et
-29 après : c'est le numérateur qui change, pas le dénominateur. Sur `https://www.fedecardio.org/`, la mesure avant correctif rendait une
-moyenne de 30,9 avec 0 passage de longueur optimale et 9 blocs en F sur 10, et les aperçus
-montraient `Informerles publics3 millions de brochuresdiffusées gratuitement`. Ce chiffre était un
-artefact, pas une mesure.
+29 après : c'est le numérateur qui change, pas le dénominateur. Le défaut a été render sur une
+vraie page d'un site de production, dont l'identité n'a pas à être consignée ici : avant
+correctif, aucun bloc n'atteignait la longueur optimale et la quasi-totalité des blocs était
+notée F, et les aperçus montraient plusieurs mots de la source soudés en un seul. Ces chiffres
+étaient un artefact, pas une mesure.
 
 **La forme du correctif, et le piège qu'il évite.** Le remède évident,
 `get_text(separator=" ")`, insère le séparateur entre *toutes* les chaînes, y compris entre le texte
-et une balise en ligne. Il transforme `Le mot <b>gras</b>itique` en `Le mot gras itique`, et sur la
-cible réelle il écrit `1 ère cause` là où la source dit `1ère cause`. C'est un second défaut, plus
-discret que le premier. Le correctif applique donc la règle inverse, site par site : **séparer au
-franchissement d'un élément de niveau bloc, ne rien ajouter au balisage en ligne**. L'espace entre
-deux mots n'apparaît que si la source en contient déjà un. Le helper est `scripts/html_text.py`,
-`block_aware_text()`.
+et une balise en ligne. Il transforme `Le mot <b>gras</b>itique` en `Le mot gras itique`, et sur
+un ordinal en ligne il écrit `1 ère` là où la source dit `1<sup>ère</sup>`. C'est un second
+défaut, plus discret que le premier. Le correctif applique donc la règle inverse, site par site :
+**séparer au franchissement d'un élément de niveau bloc, ne rien ajouter au balisage en ligne**.
+L'espace entre deux mots n'apparaît que si la source en contient déjà un. Le helper est
+`scripts/html_text.py`, `block_aware_text()`.
 
 **Pourquoi le test existe.** `tests/test_text_extraction_spaces.py` épingle les **deux** sens : deux
 blocs adjacents produisent bien un espace, et du balisage en ligne dans un même paragraphe n'en
 produit pas. Un test qui ne garderait que le premier sens laisserait passer un
 `separator=" "` appliqué partout, qui corrigerait le symptôme en introduisant le second défaut. Le
 test couvre aussi le troisième piège, celui d'un parcours naïf des enfants du DOM : `Comment` est
-une sous-classe de `NavigableString`, donc `<!-- picto evenement -->` se retrouve dans le texte
-mesuré si on ne l'exclut pas explicitement.
+une sous-classe de `NavigableString`, donc `<!-- marqueur un -->` se retrouve dans le texte mesuré
+si on ne l'exclut pas explicitement.
+
+Les fixtures du test sont **volontairement synthétiques** : elles reproduisent la structure d'une
+vraie page (titres à élément imbriqué, ordinal en ligne, `<br/>` en fin de chaîne, balisage en
+ligne collé à un mot, listes imbriquées, accents français) avec un contenu qui ne correspond à
+aucun site réel. Un repo public n'a pas à nommer la page qui a servi de référence : si un jour une
+fixture doit changer, c'est pour corriger la structure, jamais pour rendre le texte réel.
 
 **Ce qu'il faut faire à la prochaine réconciliation.** Si un commit amont touche
 `scripts/citability_scorer.py`, `scripts/fetch_page.py` ou `scripts/llmstxt_generator.py`, un

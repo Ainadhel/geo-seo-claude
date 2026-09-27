@@ -40,6 +40,34 @@ reports/
 # Working files for this dispatch: briefs, handoffs, capture, caches.
 .temp/
 
+# Client-data barrier.
+#
+# This file is tracked and public, so it must never name a client: listing the
+# real identifiers here would recreate the very leak it is meant to prevent. The
+# patterns are therefore broad and identity-free. They match the shape of the
+# accident, not the name of the target, which is the only version of a client
+# list that is safe to commit.
+#
+# A real domain inside a filename means a capture, a mirror or a note written
+# about a live site. This repository's own fixtures use the reserved
+# example.com / example.org / example.net, so nothing legitimate is lost.
+*.*.org
+*.*.com
+*.*.net
+*.*.fr
+*.*.io
+*.*.be
+*.*.eu
+
+# Captures, mirrors and crawl exports of a live site, whatever the client.
+*capture*
+*crawl-*
+*mirror-*
+*live-*.html
+*snapshot*
+*.har
+*.warc*
+
 # Output files (generated reports - may contain sensitive client data)
 # NOTE: the leading slash anchors these to the repository root only, so they
 # never matched reports/. reports/ is ignored above instead.
