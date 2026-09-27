@@ -177,6 +177,10 @@ See [commands-reference.md](commands-reference.md) for `/geo report`.
 **Outputs:** `GEO-REPORT-[brand].pdf` — cover page with score gauge, score breakdown with bar chart, AI platform readiness chart, crawler access table (green/red coded), findings by severity, action plan, and methodology appendix.
 
 **Dependencies:** `scripts/generate_pdf_report.py` (requires `pip install reportlab`).
+> **Known upstream inconsistency.** The script named above does not exist in any commit of this
+> repository. The `geo-report-pdf` skill uses `pandoc` plus headless Chrome and states "No
+> ReportLab" in its own text, so this line describes a superseded implementation. See
+> [PORTAGE-OPENCODE.md](PORTAGE-OPENCODE.md) section 4.4.
 
 See [commands-reference.md](commands-reference.md) for `/geo report-pdf`.
 
@@ -316,7 +320,7 @@ These five agents run simultaneously during a `/geo audit` to reduce total runti
 | `scripts/citability_scorer.py` | Scores individual text passages for AI citation readiness using five weighted dimensions (answer quality, self-containment, structure, statistical density, uniqueness). Provides `score_passage()` as a callable function. | geo-citability |
 | `scripts/brand_scanner.py` | Checks brand presence across AI-cited platforms (YouTube, Reddit, Wikipedia, LinkedIn). Provides per-platform check functions and instructions for WebFetch-based verification. Requires `requests` and `beautifulsoup4`. | geo-brand-mentions |
 | `scripts/llmstxt_generator.py` | Validates an existing `llms.txt` against the spec (H1 title, blockquote description, H2 sections, absolute URLs, descriptions) and generates a new file from site crawl data. | geo-llmstxt |
-| `scripts/generate_pdf_report.py` | Generates a multi-page PDF from a JSON audit data file using ReportLab. Renders score gauges, bar charts, color-coded tables, and an action plan. Accepts the JSON file path as a CLI argument or via stdin. Requires `reportlab`. | geo-report-pdf |
+| `scripts/generate_pdf_report.py` | Generates a multi-page PDF from a JSON audit data file using ReportLab. Renders score gauges, bar charts, color-coded tables, and an action plan. Accepts the JSON file path as a CLI argument or via stdin. Requires `reportlab`. **Known upstream inconsistency: this script does not exist in any commit, see PORTAGE-OPENCODE.md section 4.4.** | geo-report-pdf |
 | `scripts/crm_dashboard.py` | Renders a rich terminal dashboard for the prospect CRM. Reads `.data/geo-prospects/prospects.json` and displays pipeline stages, MRR, and prospect detail views. Requires `rich`. | geo-prospect |
 
 ---

@@ -432,7 +432,7 @@ Converts GEO audit data into a professionally formatted PDF with charts, score g
 - Checks the working directory for existing `GEO-CLIENT-REPORT.md` or `GEO-AUDIT-REPORT.md`; if none are found, runs a full audit first.
 - Parses the Markdown report to extract scores, platform readiness numbers, crawler status, findings, and action items.
 - Assembles the data into the JSON schema expected by the PDF generation script.
-- Calls `.venv/Scripts/python.exe scripts/generate_pdf_report.py` (requires `pip install reportlab`).
+- Calls `.venv/Scripts/python.exe scripts/generate_pdf_report.py` (requires `pip install reportlab`). **Known upstream inconsistency: the script named here does not exist in any commit, see PORTAGE-OPENCODE.md section 4.4.**
 - The PDF uses US Letter size with a navy/blue/coral color palette; score gauges use traffic-light colors (green 80+, blue 60–79, yellow 40–59, red below 40).
 
 **Inputs**

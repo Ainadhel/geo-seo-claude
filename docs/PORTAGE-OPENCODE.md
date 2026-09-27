@@ -239,17 +239,97 @@ La méthode est donc **répertoire par répertoire, jamais en une fois**.
 
 ## 4. Inventaire de référence
 
-Ce qui doit être vrai après n'importe quelle réconciliation :
+Ce qui doit être vrai après n'importe quelle réconciliation.
 
-| Contrôle | Valeur attendue |
+**Chaque ligne porte son périmètre**, parce qu'un compte sans périmètre n'est pas reproductible. La
+même chaîne donne des résultats différents selon qu'on l'applique aux skills seuls ou à tout le
+dépôt, et c'est précisément l'ambiguïté qui a produit les valeurs fausses de la première version de
+cette section.
+
+### 4.1 Périmètres
+
+Trois périmètres sont employés :
+
+| Périmètre | Ce qu'il recouvre |
 |---|---|
-| Répertoires dans `.agents/skills/` | 15 `geo-*` plus `geo`, soit 16 |
-| Fichiers `agents/geo-*.md` | 5 |
-| `skills/` et `geo/` à la racine | absents |
-| `allowed-tools` dans `.agents/skills/**` | 0 |
-| Références `~/.claude` ou `~/.geo-prospects` | 0 |
-| Tests | 14, tous verts |
-| Interpréteur documenté | `.venv/Scripts/python.exe` sous Windows |
+| `.agents/skills/**` | les 16 `SKILL.md`, rien d'autre |
+| dépôt hors ce fichier | tous les fichiers suivis par git, **moins** ce document |
+| dépôt | tous les fichiers suivis par git, soit 74 au 27/09/2026 |
+
+Ce document est volontairement exclu des comptages de dépôt : il cite le nom du champ et les
+chemins interdits pour les définir, donc il s'auto-mentionne et ne peut pas servir de référence à
+lui-même. Son propre compte est donné au § 4.3, à recompter après chaque édition de cette section.
+
+### 4.2 Contrôles
+
+| Contrôle | Périmètre | Valeur attendue |
+|---|---|---|
+| Répertoires dans `.agents/skills/` | dépôt | 15 `geo-*` plus `geo`, soit 16 |
+| Fichiers `agents/geo-*.md` | dépôt | 5 |
+| `skills/` et `geo/` à la racine | dépôt | absents |
+| Clé de frontmatter `allowed-tools:` | `.agents/skills/**` + `agents/**` | **0** sur les 21 fichiers migrés |
+| Chaîne `allowed-tools` | `.agents/skills/**` | **3**, toutes dans `geo-update/SKILL.md`, en prose |
+| Chaîne `allowed-tools` | dépôt hors ce fichier | **5** : les 3 ci-dessus plus 2 dans `CLAUDE.md` |
+| Chaîne `~/.claude` | `.agents/skills/**` | **6**, toutes dans `geo-update/SKILL.md`, qui est le skill de resynchronisation amont |
+| Chaîne `~/.claude` | dépôt hors ce fichier | **15** |
+| Chaîne `~/.geo-prospects` | `.agents/skills/**` | **1**, dans `geo-update/SKILL.md` |
+| Chaîne `~/.geo-prospects` | dépôt hors ce fichier | **1**, la même occurrence |
+| Tests | dépôt | 14, tous verts |
+| Interpréteur documenté | dépôt | `.venv/Scripts/python.exe` sous Windows |
+
+Le contrôle utile est la **clé de frontmatter à 0**, pas la chaîne à 0. Une vérification
+automatique de la forme `rg 'allowed-tools' .agents/skills` doit attendre 3 et non 0, sinon elle
+échouera, ou pire, sera « corrigée » à la baisse. La procédure du § 3.2 point 6 a le même défaut :
+son `rg -n 'allowed-tools' .agents/skills` doit être lu comme 3 occurrences attendues, à vérifier
+par la présence ou l'absence de la clé de frontmatter.
+
+### 4.3 Auto-mention de ce document
+
+Ce fichier cite `allowed-tools`, `~/.claude` et `~/.geo-prospects` pour les définir et pour prescrire
+les contrôles. Son propre compte se lit ainsi, à recompter après chaque édition :
+
+| Chaîne | Occurrences dans ce fichier |
+|---|---|
+| `allowed-tools` | 13 |
+| `~/.claude` | 13 |
+| `~/.geo-prospects` | 6 |
+
+### 4.4 Incohérence amont connue : `scripts/generate_pdf_report.py`
+
+L'amont documente dans quatre fichiers un script `scripts/generate_pdf_report.py` qui **n'existe
+dans aucun commit**, ni en amont ni ici : `git ls-tree -r upstream/main` ne renvoie aucun blob de
+ce nom, et `scripts/` ne contient que `brand_scanner.py`, `citability_scorer.py`, `crm_dashboard.py`,
+`fetch_page.py`, `llmstxt_generator.py` et `webapp/app.py`.
+
+Cette incohérence est **amont**, elle n'est pas née du portage :
+
+| Fichier | Amont | Ici, hors ce document |
+|---|---|---|
+| `docs/skills-and-agents.md` | 2 occurrences | 2, inchangé |
+| `docs/commands-reference.md` | 1 occurrence | 1, inchangé |
+| `README.md` | 1 occurrence | 0, entrée d'arbre retirée au portage |
+| `docs/architecture.md` | 1 occurrence | 0, entrée d'arbre retirée au portage |
+| **Total** | **5 sur 4 fichiers** | **3 sur 2 fichiers** |
+
+Le portage a retiré les deux entrées d'arbre des deux premiers arbres, sans le déclarer dans son
+rapport. C'est une **aggravation** de la panne, pas un nettoyage : en amont les quatre fichiers
+étaient cohérents entre eux et affirmaient tous que le script existe, ici la fiction est scindée
+entre des arbres qui ne le listent plus et une documentation qui le décrit encore. La forme retenue
+est de **documenter l'incohérence, pas de supprimer la documentation** : les mentions restantes sont
+du contenu amont, et les retirer créerait plus de divergence que l'incohérence n'en coûte, au sens
+du raisonnement du § 1 sur les tirets cadratins. Chacune des trois mentions porte désormais un
+avertissement visible renvoyant ici, pour qu'aucun lecteur ne puisse suivre la commande.
+
+Ce document en ajoute 3 de plus, qui décrivent la panne au lieu de la propager : le total du dépôt
+passe donc à 6 sur 3 fichiers, dont la moitié est auto-référente.
+
+Ce n'est de toute façon pas une référence à une fonctionnalité perdue. Le skill `geo-report-pdf`
+n'utilise pas ReportLab : il est passé à `pandoc` plus Chrome headless et précise « No ReportLab »
+dans son propre texte. Les mentions pointent donc vers une implémentation antérieure, déjà
+abandonnée par le skill auquel elles étaient rattachées.
+
+Une vérification automatique ne doit pas exiger 0 occurrence de `generate_pdf_report.py` : hors ce
+document, elle doit attendre **3 sur 2 fichiers**, toutes deux valant une documentation périmée.
 
 ---
 
