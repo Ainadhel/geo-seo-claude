@@ -11,6 +11,7 @@ Extended: /llms-full.txt (detailed version)
 
 import sys
 import json
+import os
 import re
 from urllib.parse import urljoin, urlparse
 
@@ -20,6 +21,10 @@ try:
 except ImportError:
     print("ERROR: Required packages not installed. Run: pip install -r requirements.txt")
     sys.exit(1)
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from html_text import block_aware_text  # noqa: E402
 
 DEFAULT_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
@@ -149,7 +154,7 @@ def generate_llmstxt(url: str, max_pages: int = 30) -> dict:
 
     # Extract site name and description
     title = soup.find("title")
-    site_name = title.get_text(strip=True).split("|")[0].split("-")[0].strip() if title else parsed.netloc
+    site_name = block_aware_text(title).split("|")[0].split("-")[0].strip() if title else parsed.netloc
     meta_desc = soup.find("meta", attrs={"name": "description"})
     site_description = meta_desc.get("content", "") if meta_desc else f"Official website of {site_name}"
 
@@ -166,7 +171,7 @@ def generate_llmstxt(url: str, max_pages: int = 30) -> dict:
     seen_urls = set()
     for link in soup.find_all("a", href=True):
         href = urljoin(base_url, link["href"])
-        link_text = link.get_text(strip=True)
+        link_text = block_aware_text(link)
 
         if not link_text or len(link_text) < 2:
             continue

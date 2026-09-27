@@ -142,6 +142,58 @@ Ajouts, chacun justifié par la nature de ce qu'il contient :
 
 `.venv/` et `audit-data*.json` étaient déjà ignorés, ils sont conservés.
 
+### 2.8 Divergence assumée : le correctif de perte d'espaces
+
+Contrairement au reste de ce document, ce qui suit est une **divergence de fond** et pas une
+réécriture de chemins. Elle est assumée, donc elle doit être signalée à chaque réconciliation.
+
+**Le défaut, et il est amont.** Trois scripts extrayaient le texte avec
+`element.get_text(strip=True)` sans `separator`. BeautifulSoup concatène alors les chaînes de
+texte sans rien mettre entre elles, et deux nœuds voisins deviennent un seul mot. Confirmé en amont
+: `git show upstream/main:scripts/citability_scorer.py` présente les deux mêmes lignes. Le portage
+ne l'a pas introduit, il l'a hérité.
+
+**Où.** Dix sites d'appel, tous sur le chemin de mesure ou de collecte :
+`citability_scorer.py` (titre de section, texte de bloc), `fetch_page.py` (titre, titres h1 à h6,
+racine de framework pour la mesure SSR, texte de lien, titre et texte de bloc de
+`extract_content_blocks`), `llmstxt_generator.py` (titre du site, texte de lien). Deux sites sont
+laissés intacts, et c'est délibéré : la ligne d'extraction de `text_content` dans `fetch_page.py`
+porte déjà un `separator` et n'a rien à corriger, et l'extraction du JSON-LD ne doit surtout pas
+recevoir de séparateur, sous peine de casser la charge utile.
+
+**Pourquoi c'est grave et pas cosmétique.** La perte d'espaces fausse tout l'aval du
+`citability_scorer.py` : `text.split()` compte de faux mots, donc `self_containment` est faux, et
+`re.split(r"[.!?]+", text)` ne segmentation plus en phrases, donc `answer_block_quality`, qui pèse
+30 % du score, est faux. Sur `https://www.fedecardio.org/`, la mesure avant correctif rendait une
+moyenne de 30,9 avec 0 passage de longueur optimale et 9 blocs en F sur 10, et les aperçus
+montraient `Informerles publics3 millions de brochuresdiffusées gratuitement`. Ce chiffre était un
+artefact, pas une mesure.
+
+**La forme du correctif, et le piège qu'il évite.** Le remède évident,
+`get_text(separator=" ")`, insère le séparateur entre *toutes* les chaînes, y compris entre le texte
+et une balise en ligne. Il transforme `Le mot <b>gras</b>itique` en `Le mot gras itique`, et sur la
+cible réelle il écrit `1 ère cause` là où la source dit `1ère cause`. C'est un second défaut, plus
+discret que le premier. Le correctif applique donc la règle inverse, site par site : **séparer au
+franchissement d'un élément de niveau bloc, ne rien ajouter au balisage en ligne**. L'espace entre
+deux mots n'apparaît que si la source en contient déjà un. Le helper est `scripts/html_text.py`,
+`block_aware_text()`.
+
+**Pourquoi le test existe.** `tests/test_text_extraction_spaces.py` épingle les **deux** sens : deux
+blocs adjacents produisent bien un espace, et du balisage en ligne dans un même paragraphe n'en
+produit pas. Un test qui ne garderait que le premier sens laisserait passer un
+`separator=" "` appliqué partout, qui corrigerait le symptôme en introduisant le second défaut. Le
+test couvre aussi le troisième piège, celui d'un parcours naïf des enfants du DOM : `Comment` est
+une sous-classe de `NavigableString`, donc `<!-- picto evenement -->` se retrouve dans le texte
+mesuré si on ne l'exclut pas explicitement.
+
+**Ce qu'il faut faire à la prochaine réconciliation.** Si un commit amont touche
+`scripts/citability_scorer.py`, `scripts/fetch_page.py` ou `scripts/llmstxt_generator.py`, un
+`git checkout upstream/main -- scripts/` ou un merge non examiné **réintroduit le défaut en
+silence** : l'amont n'a toujours pas la correction. Le test le détectera, mais seulement si `pytest`
+est lancé, et l'échec se lit alors comme un test cassé plutôt que comme une régression de mesure.
+Vérifier explicitement qu'aucun `get_text(strip=True)` sans séparateur n'a réapparu dans ces trois
+fichiers.
+
 ---
 
 ## 3. Procédure de réconciliation amont
@@ -230,6 +282,8 @@ La méthode est donc **répertoire par répertoire, jamais en une fois**.
 
 - `git checkout upstream/main -- skills/` : cela recrée `skills/` et casse l'inventaire.
 - `git checkout upstream/main -- install.sh` : cela réintroduit l'écriture dans `~/.claude/`.
+- `git checkout upstream/main -- scripts/` : cela réintroduit la perte d'espaces du § 2.8, en
+  silence, puisque l'amont n'a pas la correction.
 - Supprimer `.agents/` et repartir d'un `git reset --hard` : le port n'est pas réversible par un
   reset, il n'existe que dans les commits de `port-opencode`.
 - Modifier les 5 fichiers de `reports/`. Ce sont des livrables clients déjà livrés, ils ne se
@@ -254,7 +308,7 @@ Trois périmètres sont employés :
 |---|---|
 | `.agents/skills/**` | les 16 `SKILL.md`, rien d'autre |
 | dépôt hors ce fichier | tous les fichiers suivis par git, **moins** ce document |
-| dépôt | tous les fichiers suivis par git, soit 74 au 27/09/2026 |
+| dépôt | tous les fichiers suivis par git, soit 76 au 27/09/2026 |
 
 Ce document est volontairement exclu des comptages de dépôt : il cite le nom du champ et les
 chemins interdits pour les définir, donc il s'auto-mentionne et ne peut pas servir de référence à
@@ -274,7 +328,7 @@ lui-même. Son propre compte est donné au § 4.3, à recompter après chaque é
 | Chaîne `~/.claude` | dépôt hors ce fichier | **15** |
 | Chaîne `~/.geo-prospects` | `.agents/skills/**` | **1**, dans `geo-update/SKILL.md` |
 | Chaîne `~/.geo-prospects` | dépôt hors ce fichier | **1**, la même occurrence |
-| Tests | dépôt | 14, tous verts |
+| Tests | dépôt | 30, tous verts, dont 16 de non-régression sur l'extraction de texte |
 | Interpréteur documenté | dépôt | `.venv/Scripts/python.exe` sous Windows |
 
 Le contrôle utile est la **clé de frontmatter à 0**, pas la chaîne à 0. Une vérification

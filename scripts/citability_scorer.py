@@ -12,6 +12,7 @@ Based on research showing optimal AI-cited passages are:
 
 import sys
 import json
+import os
 import re
 from typing import Optional
 
@@ -21,6 +22,10 @@ try:
 except ImportError:
     print("ERROR: Required packages not installed. Run: pip install -r requirements.txt")
     sys.exit(1)
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from html_text import block_aware_text  # noqa: E402
 
 
 def score_passage(text: str, heading: Optional[str] = None) -> dict:
@@ -280,10 +285,10 @@ def analyze_page_citability(url: str) -> dict:
                     blocks.append(
                         {"heading": current_heading, "content": combined}
                     )
-            current_heading = element.get_text(strip=True)
+            current_heading = block_aware_text(element)
             current_paragraphs = []
         else:
-            text = element.get_text(strip=True)
+            text = block_aware_text(element)
             if text and len(text.split()) >= 5:
                 current_paragraphs.append(text)
 

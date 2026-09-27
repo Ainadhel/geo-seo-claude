@@ -6,6 +6,7 @@ Extracts HTML, text content, meta tags, headers, and structured data.
 
 import sys
 import json
+import os
 import re
 from urllib.parse import urljoin, urlparse
 
@@ -15,6 +16,10 @@ try:
 except ImportError:
     print("ERROR: Required packages not installed. Run: pip install -r requirements.txt")
     sys.exit(1)
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from html_text import block_aware_text  # noqa: E402
 
 # Common AI crawler user agents for testing
 AI_CRAWLERS = {
@@ -96,7 +101,7 @@ def fetch_page(url: str, timeout: int = 30) -> dict:
 
         # Title
         title_tag = soup.find("title")
-        result["title"] = title_tag.get_text(strip=True) if title_tag else None
+        result["title"] = block_aware_text(title_tag) if title_tag else None
 
         # Meta tags
         for meta in soup.find_all("meta"):
@@ -114,7 +119,7 @@ def fetch_page(url: str, timeout: int = 30) -> dict:
         # Headings
         for level in range(1, 7):
             for heading in soup.find_all(f"h{level}"):
-                text = heading.get_text(strip=True)
+                text = block_aware_text(heading)
                 result["heading_structure"].append({"level": level, "text": text})
                 if level == 1:
                     result["h1_tags"].append(text)
@@ -145,7 +150,7 @@ def fetch_page(url: str, timeout: int = 30) -> dict:
         # before decompose() strips elements from the tree
         ssr_check_results = []
         for root_el in js_app_roots:
-            inner_text = root_el.get_text(strip=True)
+            inner_text = block_aware_text(root_el)
             ssr_check_results.append({
                 "id": root_el.get("id", "unknown"),
                 "text_length": len(inner_text),
@@ -163,7 +168,7 @@ def fetch_page(url: str, timeout: int = 30) -> dict:
         base_domain = parsed_url.netloc
         for link in soup.find_all("a", href=True):
             href = urljoin(url, link["href"])
-            link_text = link.get_text(strip=True)
+            link_text = block_aware_text(link)
             parsed_href = urlparse(href)
             if parsed_href.netloc == base_domain:
                 result["internal_links"].append({"url": href, "text": link_text})
@@ -383,10 +388,10 @@ def extract_content_blocks(html: str) -> list:
                         ),
                     }
                 )
-            current_heading = element.get_text(strip=True)
+            current_heading = block_aware_text(element)
             current_content = []
         else:
-            text = element.get_text(strip=True)
+            text = block_aware_text(element)
             if text:
                 current_content.append(text)
 
