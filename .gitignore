@@ -28,7 +28,21 @@ env/
 # Logs
 *.log
 
+# Deliverables folder (client audits and reports already produced).
+# Anchored here on purpose: the upstream rule below is `/GEO-*.md`, which only
+# matches the repository root, so reports/GEO-AUDIT-*.md was being tracked.
+# These are delivered client artefacts, not source.
+reports/
+
+# Prospect / proposal / CRM state. Client pipeline data, never versioned.
+.data/
+
+# Working files for this dispatch: briefs, handoffs, capture, caches.
+.temp/
+
 # Output files (generated reports - may contain sensitive client data)
+# NOTE: the leading slash anchors these to the repository root only, so they
+# never matched reports/. reports/ is ignored above instead.
 /GEO-*.md
 /GEO-*.pdf
 *.pdf

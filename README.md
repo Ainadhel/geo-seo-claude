@@ -39,58 +39,75 @@
 
 ## Quick Start
 
-### One-Command Install (macOS/Linux)
+> **Ported fork.** This repository runs under OpenCode from a local clone. The skills are read from
+> `.agents/skills/`, there is no install into `~/.claude/`, and nothing is written outside the
+> working folder. See [`docs/PORTAGE-OPENCODE.md`](docs/PORTAGE-OPENCODE.md).
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/zubair-trabzada/geo-seo-claude/main/install.sh | bash
+### Windows (PowerShell)
+
+```powershell
+git clone https://github.com/Ainadhel/geo-seo-claude.git
+cd geo-seo-claude
+.\install-win.ps1
 ```
 
-### Manual Install
+### macOS / Linux
 
 ```bash
-git clone https://github.com/zubair-trabzada/geo-seo-claude.git
+git clone https://github.com/Ainadhel/geo-seo-claude.git
 cd geo-seo-claude
 ./install.sh
 ```
 
-### Windows (Git Bash)
+### Windows under Git Bash
 
-Requires [Git for Windows](https://git-scm.com/downloads) which includes Git Bash.
+Only if you already have Git Bash. On Windows, `install-win.ps1` is the supported path.
 
 ```bash
-# Option 1: One-command install (run from Git Bash, not PowerShell/CMD)
-curl -fsSL https://raw.githubusercontent.com/zubair-trabzada/geo-seo-claude/main/install-win.sh | bash
-
-# Option 2: Manual install
-git clone https://github.com/zubair-trabzada/geo-seo-claude.git
-cd geo-seo-claude
 ./install-win.sh
 ```
 
-> **Note:** Right-click the folder and select "Open Git Bash here", or open Git Bash and navigate to the directory. Do not use PowerShell or Command Prompt.
+There is no `curl | bash` installer. The bootstrap runs from your clone, in place.
 
 ### Requirements
 
-- Python 3.8+ (on Debian/Ubuntu also `python3-venv`)
-- Claude Code CLI
+- Python 3.8+ (the target machine runs 3.14)
+- OpenCode
 - Git
-- Optional: [`uv`](https://docs.astral.sh/uv/) — if present, the installer uses it for a faster dependency install
+- Optional: [`uv`](https://docs.astral.sh/uv/), used for a faster venv and dependency install
 - Optional: Playwright (for screenshots)
 
 ### Isolated install
 
-Python dependencies are installed into a dedicated virtual environment at
-`~/.claude/skills/geo/.venv/`. Your system Python is **not** touched, and
-uninstalling the skill removes the venv together with the rest of the files.
+Python dependencies go into a virtual environment **inside the working folder**, at `.venv/`. Your
+system Python is not touched, and the skills reference that interpreter directly, so the tool works
+regardless of what `python` resolves to on your `PATH`.
 
-Skill and agent files reference that venv directly, so the tool works
-regardless of what `python3` resolves to on your `PATH`.
+| Platform | Venv interpreter |
+|---|---|
+| Windows | `.venv\Scripts\python.exe` |
+| macOS / Linux | `.venv/bin/python3` |
+
+Every command in the skills and agent files uses that path, for example:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\fetch_page.py https://example.com
+```
+
+Run the test suite the same way:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest tests\ -q
+```
+
+The tests are pytest-style classes, so `unittest discover` does not collect them. The bootstrap
+installs `pytest` into the venv for you.
 
 ---
 
 ## Commands
 
-Open Claude Code and use these commands:
+Use the skills in OpenCode:
 
 | Command | What It Does |
 |---------|-------------|
@@ -113,56 +130,67 @@ Open Claude Code and use these commands:
 
 ```
 geo-seo-claude/
-├── geo/                          # Main skill orchestrator
-│   └── SKILL.md                  # Primary skill file with commands & routing
-├── skills/                       # 13 specialized sub-skills
-│   ├── geo-audit/                # Full audit orchestration & scoring
-│   ├── geo-citability/           # AI citation readiness scoring
-│   ├── geo-crawlers/             # AI crawler access analysis
-│   ├── geo-llmstxt/              # llms.txt standard analysis & generation
-│   ├── geo-brand-mentions/       # Brand presence on AI-cited platforms
-│   ├── geo-platform-optimizer/   # Platform-specific AI search optimization
-│   ├── geo-schema/               # Structured data for AI discoverability
-│   ├── geo-technical/            # Technical SEO foundations
-│   ├── geo-content/              # Content quality & E-E-A-T
-│   ├── geo-report/               # Client-ready markdown report generation
-│   ├── geo-report-pdf/           # Professional PDF report with charts
-│   ├── geo-prospect/             # CRM-lite prospect pipeline management
-│   ├── geo-proposal/             # Auto-generate client proposals
-│   └── geo-compare/              # Monthly delta tracking & progress reports
-├── agents/                       # 5 parallel subagents
-│   ├── geo-ai-visibility.md      # GEO audit, citability, crawlers, brands
-│   ├── geo-platform-analysis.md  # Platform-specific optimization
-│   ├── geo-technical.md          # Technical SEO analysis
-│   ├── geo-content.md            # Content & E-E-A-T analysis
-│   └── geo-schema.md             # Schema markup analysis
-├── scripts/                      # Python utilities
-│   ├── fetch_page.py             # Page fetching & parsing
-│   ├── citability_scorer.py      # AI citability scoring engine
-│   ├── brand_scanner.py          # Brand mention detection
-│   ├── llmstxt_generator.py      # llms.txt validation & generation
-│   └── generate_pdf_report.py    # PDF report generator (ReportLab)
-├── schema/                       # JSON-LD templates
-│   ├── organization.json         # Organization schema (with sameAs)
-│   ├── local-business.json       # LocalBusiness schema
-│   ├── article-author.json       # Article + Person schema (E-E-A-T)
-│   ├── software-saas.json        # SoftwareApplication schema
-│   ├── product-ecommerce.json    # Product schema with offers
-│   └── website-searchaction.json # WebSite + SearchAction schema
-├── install.sh                    # One-command installer
-├── uninstall.sh                  # Uninstaller
-├── requirements.txt              # Python dependencies
-└── README.md                     # This file
+├── .agents/skills/                # 15 specialized sub-skills + the orchestrator
+│   ├── geo/SKILL.md               # Main skill orchestrator: commands & routing
+│   ├── geo-audit/                 # Full audit orchestration & scoring
+│   ├── geo-citability/            # AI citation readiness scoring
+│   ├── geo-crawlers/              # AI crawler access analysis
+│   ├── geo-llmstxt/               # llms.txt standard analysis & generation
+│   ├── geo-brand-mentions/        # Brand presence on AI-cited platforms
+│   ├── geo-platform-optimizer/    # Platform-specific AI search optimization
+│   ├── geo-schema/                # Structured data for AI discoverability
+│   ├── geo-technical/             # Technical SEO foundations
+│   ├── geo-content/               # Content quality & E-E-A-T
+│   ├── geo-report/                # Client-ready markdown report generation
+│   ├── geo-report-pdf/            # Professional PDF report with charts
+│   ├── geo-prospect/              # CRM-lite prospect pipeline management
+│   ├── geo-proposal/              # Auto-generate client proposals
+│   ├── geo-compare/               # Monthly delta tracking & progress reports
+│   └── geo-update/                # Pull upstream changes into this layout
+├── agents/                        # 5 parallel subagents
+│   ├── geo-ai-visibility.md       # GEO audit, citability, crawlers, brands
+│   ├── geo-platform-analysis.md   # Platform-specific optimization
+│   ├── geo-technical.md           # Technical SEO analysis
+│   ├── geo-content.md             # Content & E-E-A-T analysis
+│   └── geo-schema.md              # Schema markup analysis
+├── scripts/                       # Python utilities
+│   ├── fetch_page.py              # Page fetching & parsing
+│   ├── citability_scorer.py       # AI citability scoring engine
+│   ├── brand_scanner.py           # Brand mention detection
+│   ├── llmstxt_generator.py       # llms.txt validation & generation
+│   ├── crm_dashboard.py           # Rich CLI over the prospect CRM
+│   └── webapp/                    # Flask + HTMX CRM web UI
+├── schema/                        # JSON-LD templates
+│   ├── organization.json          # Organization schema (with sameAs)
+│   ├── local-business.json        # LocalBusiness schema
+│   ├── article-author.json        # Article + Person schema (E-E-A-T)
+│   ├── software-saas.json         # SoftwareApplication schema
+│   ├── product-ecommerce.json     # Product schema with offers
+│   └── website-searchaction.json  # WebSite + SearchAction schema
+├── templates/                     # geo-report-style.css + geo-report-template.html
+├── install-win.ps1                # Windows / PowerShell bootstrap (primary)
+├── install.sh                     # POSIX bootstrap
+├── uninstall.sh                   # Removes .venv and, on request, .data
+├── requirements.txt               # Python dependencies
+├── .venv/                         # Project-local venv, not versioned
+├── .data/geo-prospects/           # Prospect data, not versioned
+├── reports/                       # Client deliverables, not versioned
+└── README.md                      # This file
 ```
+
+Upstream keeps the sub-skills in `skills/` and the orchestrator in `geo/`, then copies both into
+`~/.claude/`. That layout is gone here on purpose: OpenCode reads `.agents/skills/` in place, so
+copying is both unnecessary and a source of drift.
 
 ---
 
 ## Data Storage
 
-The CRM and reporting skills (`/geo prospect`, `/geo proposal`, `/geo compare`) store runtime data outside the Claude Code directory:
+The CRM and reporting skills (`/geo prospect`, `/geo proposal`, `/geo compare`) store runtime data
+inside the working folder:
 
 ```
-~/.geo-prospects/
+.data/geo-prospects/
 ├── prospects.json              # Client/prospect pipeline data
 ├── proposals/                  # Generated proposal documents
 │   └── <domain>-proposal-<date>.md
@@ -170,7 +198,9 @@ The CRM and reporting skills (`/geo prospect`, `/geo proposal`, `/geo compare`) 
     └── <domain>-monthly-<YYYY-MM>.md
 ```
 
-This directory is **not removed** by the uninstaller — delete it manually if you no longer need your prospect data.
+This directory holds client data and is git-ignored. It is never removed automatically, delete it
+by hand once you no longer need your prospect data. The Python helpers read the same location and
+honour a `GEO_PROSPECTS_DIR` environment variable if you need to point them elsewhere.
 
 ---
 
@@ -235,16 +265,23 @@ Generates professional GEO reports in markdown or PDF format. PDF reports includ
 - **E-commerce** — Optimize product pages for AI shopping recommendations
 
 ---
-
 ## Uninstall
+
+There is nothing installed outside the working folder, so uninstalling is a local operation.
 
 ```bash
 ./uninstall.sh
 ```
 
-Or manually:
-```bash
-rm -rf ~/.claude/skills/geo ~/.claude/skills/geo-* ~/.claude/agents/geo-*.md
+The script removes `.venv/` and asks before touching `.data/geo-prospects/`. It deliberately does
+**not** delete the skills, agents or scripts: those are source files in this repository, and
+removing them would destroy the working folder.
+
+On Windows the equivalent is:
+
+```powershell
+Remove-Item -Recurse -Force .venv
+Remove-Item -Recurse -Force .data   # only if you no longer need the prospect data
 ```
 
 ---

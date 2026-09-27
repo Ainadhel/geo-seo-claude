@@ -18,7 +18,7 @@ This tells AI operators what they can and cannot do with the content downstream 
 
 ## What changed
 
-- **`skills/geo-crawlers/SKILL.md`** — New Step 6 in the Analysis Procedure: scan robots.txt for `Content-Signal:` directives. Parse key=value pairs, validate against known keys (`ai-train`, `search`, `ai-personalization`, `ai-retrieval`) and values (`yes`/`no`). Flag unknown keys as warnings (draft is still evolving). Extend output template with a Content Signals section.
+- **`.agents/skills/geo-crawlers/SKILL.md`** — New Step 6 in the Analysis Procedure: scan robots.txt for `Content-Signal:` directives. Parse key=value pairs, validate against known keys (`ai-train`, `search`, `ai-personalization`, `ai-retrieval`) and values (`yes`/`no`). Flag unknown keys as warnings (draft is still evolving). Extend output template with a Content Signals section.
 - **`agents/geo-ai-visibility.md`** — Extended Step 3 (AI Crawler Access Check) to also parse Content Signals from the already-fetched robots.txt. Non-scoring flag — does not affect the Crawler Access Score.
 - **`specs/agent-readiness-checks.md`** — Full spec for this check (and the two HTTP-level checks in a separate PR).
 - **`tests/agent-readiness-test-results.md`** — Test results covering Content Signals across 2 sites.
@@ -44,7 +44,7 @@ Notable finding: the spec author's own site (`contentsignals.org`) uses an unkno
 
 ## Files in this PR
 
-- `skills/geo-crawlers/SKILL.md`
+- `.agents/skills/geo-crawlers/SKILL.md`
 - `agents/geo-ai-visibility.md`
 - `specs/agent-readiness-checks.md`
 - `tests/agent-readiness-test-results.md`

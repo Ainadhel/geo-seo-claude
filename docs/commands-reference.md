@@ -1,6 +1,6 @@
 # Commands Reference
 
-This file documents every command in the `geo-seo-claude` skill bundle. Commands are invoked inside Claude Code using the `/geo` prefix. The main skill at `geo/SKILL.md` acts as a router: it reads the first argument after `/geo` and delegates to the matching sub-skill under `skills/`. All commands accept a URL as their primary argument; CRM commands operate on domain names or prospect IDs instead. Every command that produces a score references the weighting model described in [scoring-methodology.md](scoring-methodology.md). The parallel subagent architecture used by `/geo audit` is described in [architecture.md](architecture.md).
+This file documents every command in the `geo-seo-claude` skill bundle. Commands are invoked inside Claude Code using the `/geo` prefix. The main skill at `.agents/skills/geo/SKILL.md` acts as a router: it reads the first argument after `/geo` and delegates to the matching sub-skill under `.agents/skills/`. All commands accept a URL as their primary argument; CRM commands operate on domain names or prospect IDs instead. Every command that produces a score references the weighting model described in [scoring-methodology.md](scoring-methodology.md). The parallel subagent architecture used by `/geo audit` is described in [architecture.md](architecture.md).
 
 ---
 
@@ -432,7 +432,7 @@ Converts GEO audit data into a professionally formatted PDF with charts, score g
 - Checks the working directory for existing `GEO-CLIENT-REPORT.md` or `GEO-AUDIT-REPORT.md`; if none are found, runs a full audit first.
 - Parses the Markdown report to extract scores, platform readiness numbers, crawler status, findings, and action items.
 - Assembles the data into the JSON schema expected by the PDF generation script.
-- Calls `python3 ~/.claude/skills/geo/scripts/generate_pdf_report.py` (requires `pip install reportlab`).
+- Calls `.venv/Scripts/python.exe scripts/generate_pdf_report.py` (requires `pip install reportlab`).
 - The PDF uses US Letter size with a navy/blue/coral color palette; score gauges use traffic-light colors (green 80+, blue 60–79, yellow 40–59, red below 40).
 
 **Inputs**
@@ -471,7 +471,7 @@ A CRM-lite pipeline manager for tracking prospects and clients from initial disc
 
 **What it does**
 
-- Stores all prospect data in `~/.geo-prospects/prospects.json` as persistent JSON records containing ID, company, domain, status, GEO score, audit file path, proposal file path, monthly contract value, and timestamped notes.
+- Stores all prospect data in `.data/geo-prospects/prospects.json` as persistent JSON records containing ID, company, domain, status, GEO score, audit file path, proposal file path, monthly contract value, and timestamped notes.
 - Tracks five pipeline stages: `lead`, `qualified`, `proposal`, `won`, `lost`.
 - `prospect audit` calls `/geo quick` and saves the resulting score to the prospect record.
 - `prospect pipeline` prints a revenue-focused summary showing committed MRR, pipeline value, and suggested next actions per record.
@@ -489,7 +489,7 @@ A CRM-lite pipeline manager for tracking prospects and clients from initial disc
 
 **Output**
 
-Updates `~/.geo-prospects/prospects.json`. Audit snapshots saved to `~/.geo-prospects/audits/`. Terminal output for all subcommands.
+Updates `.data/geo-prospects/prospects.json`. Audit snapshots saved to `.data/geo-prospects/audits/`. Terminal output for all subcommands.
 
 **When to use it**
 
@@ -513,12 +513,12 @@ Auto-generates a fully customized, client-ready GEO service proposal from audit 
 ```
 /geo proposal example.com
 /geo proposal example.com --tier standard --client-name "Acme Corp"
-/geo proposal ~/.geo-prospects/audits/example.com-2026-03-12.md
+/geo proposal .data/geo-prospects/audits/example.com-2026-03-12.md
 ```
 
 **What it does**
 
-- Loads the most recent audit file from `~/.geo-prospects/audits/<domain>*.md` (or runs `/geo quick` if none exists).
+- Loads the most recent audit file from `.data/geo-prospects/audits/<domain>*.md` (or runs `/geo quick` if none exists).
 - Selects a recommended service tier based on GEO score: 0–40 → Premium, 41–60 → Standard, 61–75 → Basic.
 - Populates a 12-section proposal template: executive summary, market context tables, audit findings, three-tier service packages with pricing (Basic €2,500/mo, Standard €5,000/mo, Premium €9,500/mo), ROI projection table, six-month engagement timeline, investment summary, and terms.
 - Updates the prospect record status to `proposal` and saves the proposal file path.
@@ -534,7 +534,7 @@ Auto-generates a fully customized, client-ready GEO service proposal from audit 
 
 **Output**
 
-Writes `~/.geo-prospects/proposals/<domain>-proposal-<date>.md`. Prints confirmation with the recommended package and price. The proposal is ready to send without editing.
+Writes `.data/geo-prospects/proposals/<domain>-proposal-<date>.md`. Prints confirmation with the recommended package and price. The proposal is ready to send without editing.
 
 **When to use it**
 
@@ -556,7 +556,7 @@ Generates a monthly delta report comparing a baseline audit to a current audit, 
 
 **What it does**
 
-- Locates audit files in `~/.geo-prospects/audits/` matching the domain; uses the oldest as baseline and the newest as current. If only one file exists, runs a fresh quick audit as the current snapshot.
+- Locates audit files in `.data/geo-prospects/audits/` matching the domain; uses the oldest as baseline and the newest as current. If only one file exists, runs a fresh quick audit as the current snapshot.
 - Extracts overall GEO score, all six category scores, all five platform scores, and AI crawler status from both files.
 - Calculates deltas and assigns trend symbols (▲▲ strong improvement, ▲ improvement, ── unchanged, ▼ decline, ▼▼ significant decline).
 - Tracks completion status of quick wins, medium-term, and strategic action items.
@@ -571,7 +571,7 @@ Generates a monthly delta report comparing a baseline audit to a current audit, 
 
 **Output**
 
-Writes `~/.geo-prospects/reports/<domain>-monthly-<YYYY-MM>.md`. Prints a summary to the terminal showing score change, quick wins completion rate, new issues found, and whether the six-month target is on track.
+Writes `.data/geo-prospects/reports/<domain>-monthly-<YYYY-MM>.md`. Prints a summary to the terminal showing score change, quick wins completion rate, new issues found, and whether the six-month target is on track.
 
 **When to use it**
 
@@ -581,8 +581,8 @@ Run this on the first of each month for every active client to generate the prog
 
 ## Discrepancies
 
-The following discrepancies were found between `geo/SKILL.md` and the `skills/` directory:
+The following discrepancies were found between `.agents/skills/geo/SKILL.md` and the `.agents/skills/` directory:
 
-- **`/geo quick`**: Listed in `geo/SKILL.md` and referenced throughout the codebase (by `geo-prospect` and `geo-compare`), but there is no `skills/geo-quick/SKILL.md`. The quick-scan behavior is documented only through the orchestration instructions in `geo/SKILL.md` and the `geo-prospect` skill. This command is documented above based on those references.
-- **`/geo page`**: Listed in `geo/SKILL.md`'s quick reference table (as `/geo page <url>` — deep single-page GEO analysis) and in the output files table (produces `GEO-PAGE-ANALYSIS.md`), but there is no `skills/geo-page/SKILL.md`. No implementation exists. This command is **not documented** in the reference above because there is no skill file to draw from.
-- **`/geo quick` in original `docs/commands-reference.md`**: The old table listed `/geo quick` but `geo/SKILL.md` does not list it in the sub-skills table (only in the quick reference table). It is referenced as a real behavior in the prospect and compare skills, so it is retained above.
+- **`/geo quick`**: Listed in `.agents/skills/geo/SKILL.md` and referenced throughout the codebase (by `geo-prospect` and `geo-compare`), but there is no `.agents/skills/geo-quick/SKILL.md`. The quick-scan behavior is documented only through the orchestration instructions in `.agents/skills/geo/SKILL.md` and the `geo-prospect` skill. This command is documented above based on those references.
+- **`/geo page`**: Listed in `.agents/skills/geo/SKILL.md`'s quick reference table (as `/geo page <url>` — deep single-page GEO analysis) and in the output files table (produces `GEO-PAGE-ANALYSIS.md`), but there is no `.agents/skills/geo-page/SKILL.md`. No implementation exists. This command is **not documented** in the reference above because there is no skill file to draw from.
+- **`/geo quick` in original `docs/commands-reference.md`**: The old table listed `/geo quick` but `.agents/skills/geo/SKILL.md` does not list it in the sub-skills table (only in the quick reference table). It is referenced as a real behavior in the prospect and compare skills, so it is retained above.

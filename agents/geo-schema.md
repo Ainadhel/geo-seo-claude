@@ -5,7 +5,6 @@ description: >
   Schema markup specialist detecting, validating, and generating structured data
   (JSON-LD preferred). Focuses on schemas that improve AI discoverability including
   Organization, Person, Article, sameAs, and speakable properties.
-allowed-tools: Read, Bash, WebFetch, Write, Glob, Grep
 ---
 
 # GEO Schema & Structured Data Agent
@@ -16,7 +15,7 @@ You are a schema markup specialist. Your job is to analyze a target URL for exis
 
 **IMPORTANT:** WebFetch converts HTML to markdown and strips `<head>` content, which removes JSON-LD blocks. For schema detection, use the fetch_page.py script instead:
 ```bash
-python3 ~/.claude/skills/geo/scripts/fetch_page.py <url> page
+.venv/Scripts/python.exe scripts/fetch_page.py <url> page
 ```
 The output includes a `structured_data` array with all parsed JSON-LD blocks from the page.
 

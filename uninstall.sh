@@ -2,14 +2,22 @@
 set -euo pipefail
 
 # ============================================================
-# GEO-SEO Claude Code Skill Uninstaller
+# GEO-SEO cleanup for the OpenCode port.
+#
+# There is nothing installed outside the working folder, so
+# this does NOT delete the skills, the agents or the scripts:
+# they are source files in this repository, and removing them
+# would destroy the working folder.
+#
+# It only removes the two things the bootstrap created:
+#   .venv/   (regenerable)
+#   .data/   (prospect data, asked for explicitly)
 # ============================================================
 
-CLAUDE_DIR="${HOME}/.claude"
-SKILLS_DIR="${CLAUDE_DIR}/skills"
-AGENTS_DIR="${CLAUDE_DIR}/agents"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
+VENV_DIR="${REPO_ROOT}/.venv"
+DATA_DIR="${REPO_ROOT}/.data"
 
-# Detect if running via curl pipe (no interactive input available)
 INTERACTIVE=true
 if [ ! -t 0 ]; then
     INTERACTIVE=false
@@ -21,70 +29,80 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-# Ensure unmatched globs expand to nothing
-shopt -s nullglob
+print_warning() { echo -e "${YELLOW}$1${NC}"; }
+print_success() { echo -e "${GREEN}  [OK]   $1${NC}"; }
+print_error()   { echo -e "${RED}  [FAIL] $1${NC}"; }
+print_info()    { echo -e "${BLUE}==> $1${NC}"; }
 
 echo ""
-echo -e "${YELLOW}GEO-SEO Claude Code Skill Uninstaller${NC}"
+echo -e "${YELLOW}GEO-SEO cleanup (OpenCode port)${NC}"
 echo ""
-echo "This will remove the following:"
+echo "The skills in .agents/skills/, the agents in agents/ and the scripts in"
+echo "scripts/ are source files in this repository. They are left in place."
+echo ""
+echo "This will remove:"
+echo ""
+[ -d "$VENV_DIR" ] && echo "  -> ${VENV_DIR}/  (virtual environment, regenerable)"
+[ -d "$DATA_DIR" ] && echo "  -> ${DATA_DIR}/  (PROSPECT DATA, not regenerable)"
 echo ""
 
-# List what will be removed
-[ -d "$SKILLS_DIR/geo" ] && echo "  → ${SKILLS_DIR}/geo/"
-for skill_dir in "$SKILLS_DIR"/geo-*/; do
-    [ -d "$skill_dir" ] && echo "  → ${skill_dir}"
-done
-for agent_file in "$AGENTS_DIR"/geo-*.md; do
-    [ -f "$agent_file" ] && echo "  → ${agent_file}"
-done
-
-echo ""
 if [ "$INTERACTIVE" = true ]; then
-    read -p "Are you sure you want to uninstall? (y/n): " -n 1 -r
+    read -p "Remove the virtual environment? (y/n): " -n 1 -r
     echo ""
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo "Uninstall cancelled."
-        exit 0
+        echo "Virtual environment kept."
+        VENV_KEEP=true
+    else
+        VENV_KEEP=false
+    fi
+
+    if [ -d "$DATA_DIR" ]; then
+        echo ""
+        read -p "Remove prospect data too? (y/N): " -n 1 -r
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            DATA_KEEP=false
+        else
+            DATA_KEEP=true
+            echo "Prospect data kept."
+        fi
+    else
+        DATA_KEEP=true
     fi
 else
-    echo -e "${YELLOW}Non-interactive mode — proceeding with uninstall...${NC}"
+    print_warning "Non-interactive mode: removing the venv, keeping prospect data."
+    echo "Re-run with a TTY and answer yes to also remove .data/"
+    VENV_KEEP=false
+    DATA_KEEP=true
 fi
 
 echo ""
 
-# Remove main skill
-if [ -d "$SKILLS_DIR/geo" ]; then
-    rm -rf "$SKILLS_DIR/geo"
-    echo -e "${GREEN}✓ Removed main skill${NC}"
+if [ "$VENV_KEEP" = false ] && [ -d "$VENV_DIR" ]; then
+    print_info "Removing ${VENV_DIR}"
+    rm -rf "$VENV_DIR"
+    print_success "Virtual environment removed"
+    echo "  Recreate it with ./install.sh, or .\install-win.ps1 on Windows"
+elif [ -d "$VENV_DIR" ]; then
+    print_success "Virtual environment kept"
+else
+    print_success "No virtual environment present"
 fi
 
-# Remove sub-skills
-for skill_dir in "$SKILLS_DIR"/geo-*/; do
-    if [ -d "$skill_dir" ]; then
-        skill_name=$(basename "$skill_dir")
-        rm -rf "$skill_dir"
-        echo -e "${GREEN}✓ Removed ${skill_name}${NC}"
-    fi
-done
+echo ""
 
-# Remove agents
-for agent_file in "$AGENTS_DIR"/geo-*.md; do
-    if [ -f "$agent_file" ]; then
-        agent_name=$(basename "$agent_file")
-        rm -f "$agent_file"
-        echo -e "${GREEN}✓ Removed ${agent_name}${NC}"
-    fi
-done
+if [ "$DATA_KEEP" = false ] && [ -d "$DATA_DIR" ]; then
+    print_info "Removing ${DATA_DIR}"
+    rm -rf "$DATA_DIR"
+    print_success "Prospect data removed"
+else
+    print_success "Prospect data kept at ${DATA_DIR} (never removed automatically)"
+fi
 
 echo ""
-echo -e "${GREEN}GEO-SEO skill has been uninstalled.${NC}"
+echo -e "${GREEN}Cleanup done.${NC}"
 echo ""
-echo "Note: Python dependencies lived in an isolated venv inside the skill"
-echo "directory, so they were removed automatically. Nothing to clean up on"
-echo "your system Python."
-echo ""
-echo "Note: Prospect data at ~/.geo-prospects/ was not removed."
-echo "To remove it manually:"
-echo "  rm -rf ~/.geo-prospects"
+echo "The toolkit itself is untouched: it is part of this repository."
+echo "To get back to the upstream layout and an install into ~/.claude, read"
+echo "docs/PORTAGE-OPENCODE.md."
 echo ""

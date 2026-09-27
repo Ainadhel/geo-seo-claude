@@ -30,15 +30,15 @@ The skill bundle is implemented as Claude Code slash commands. All commands (`/g
 
 ### Can I run this on Windows without WSL?
 
-Yes, but you must use Git Bash, not PowerShell or Command Prompt. The Windows installer is `install-win.sh` and requires Git for Windows (which bundles Git Bash). Right-click the repo folder and select "Open Git Bash here", then run `./install-win.sh`. WSL is not required.
+Yes, and PowerShell is the supported shell in this fork. Run `.\install-win.ps1` from the repository root; it creates the project-local venv and the local data directory. No WSL and no Git Bash are needed. (`install-win.sh` still exists for anyone who does have Git Bash, but it is not the path documented here.)
 
-### What does `install.sh` actually do?
+### What does the installer actually do?
 
-It checks for Git, Python 3.8+, and Claude Code CLI, then copies files into your Claude configuration directory (`~/.claude/`). Specifically: the main skill goes to `~/.claude/skills/geo/`, each of the 13 sub-skills goes to `~/.claude/skills/geo-<name>/`, and the 5 agent files go to `~/.claude/agents/`. It then installs Python dependencies from `requirements.txt` using `pip install --user`. If you run it interactively, it also offers to install the Playwright Chromium browser for screenshot support. The installer works both from a cloned local directory and via a `curl | bash` pipe from the repository URL.
+It checks for Git and Python 3.8+, then prepares the working folder in place. Specifically: it creates a virtual environment at `.venv/` inside the working folder, installs `requirements.txt` and `pytest` into it, and creates the prospect data directory `.data/geo-prospects/`. The skills are not copied anywhere, they already live where OpenCode reads them (`.agents/skills/`), and the 5 agent definitions stay in `agents/`. Nothing is written to `~/.claude/` or anywhere else in your user profile. If you run it interactively, it also offers to install the Playwright Chromium browser for screenshot support.
 
 ### Do I need Playwright?
 
-Playwright is optional. The installer prompts you to install it (`python3 -m playwright install chromium`). Without it, screenshot-based features are unavailable but all other audit and analysis commands function normally. You can install it later at any time.
+Playwright is optional. The installer prompts you to install it (`.venv/Scripts/python.exe -m playwright install chromium`). Without it, screenshot-based features are unavailable but all other audit and analysis commands function normally. You can install it later at any time.
 
 ---
 
@@ -54,20 +54,20 @@ The score (0-100) is a weighted aggregate across six categories: AI Citability &
 
 ### How do the parallel subagents work?
 
-During a full audit, five subagents run simultaneously after the initial discovery phase: `geo-ai-visibility`, `geo-platform-analysis`, `geo-technical`, `geo-content`, and `geo-schema`. Each maps to an agent definition file in `~/.claude/agents/` and is responsible for a distinct slice of the analysis. Claude Code's agent system handles the parallel dispatch; the orchestrator then collects all five reports and synthesizes the composite score. See [architecture.md](architecture.md) for the full flow.
+During a full audit, five subagents run simultaneously after the initial discovery phase: `geo-ai-visibility`, `geo-platform-analysis`, `geo-technical`, `geo-content`, and `geo-schema`. Each maps to an agent definition file in `agents/` and is responsible for a distinct slice of the analysis. OpenCode handles the parallel dispatch; the orchestrator then collects all five reports and synthesizes the composite score. See [architecture.md](architecture.md) for the full flow.
 
 ### Where is prospect, proposal, and report data stored?
 
-Data from `/geo prospect`, `/geo proposal`, and `/geo compare` is written to `~/.geo-prospects/` outside the Claude Code directory. The structure is:
+Data from `/geo prospect`, `/geo proposal`, and `/geo compare` is written to `.data/geo-prospects/`, inside the working folder. The structure is:
 
 ```
-~/.geo-prospects/
+.data/geo-prospects/
 ├── prospects.json
 ├── proposals/<domain>-proposal-<date>.md
 └── reports/<domain>-monthly-<YYYY-MM>.md
 ```
 
-This directory is intentionally not removed by `uninstall.sh`. Delete it manually with `rm -rf ~/.geo-prospects` if you want to discard your prospect data.
+This directory holds client pipeline data and is git-ignored. It is never deleted automatically; remove it by hand with `Remove-Item -Recurse -Force .data\geo-prospects` when you are sure you no longer need it. The Python helpers (`crm_dashboard.py`, the Flask webapp) read the same location, and honour a `GEO_PROSPECTS_DIR` environment variable if you need to point them elsewhere.
 
 ---
 
@@ -75,11 +75,11 @@ This directory is intentionally not removed by `uninstall.sh`. Delete it manuall
 
 ### How do I add a new sub-skill?
 
-Create a new directory under `skills/` following the naming pattern `geo-<skill-name>/`. Add a `SKILL.md` inside it that defines the skill's name, description, and logic. If the skill should participate in the full audit, register it in the appropriate agent file under `agents/`. Follow the structure of an existing sub-skill such as `skills/geo-citability/` as a reference. See [skills-and-agents.md](skills-and-agents.md) for a map of how skills and agents relate.
+Create a new directory under `.agents/skills/` following the naming pattern `geo-<skill-name>/`. Add a `SKILL.md` inside it that defines the skill's name, description, and logic. If the skill should participate in the full audit, register it in the appropriate agent file under `agents/`. Follow the structure of an existing sub-skill such as `.agents/skills/geo-citability/` as a reference. See [skills-and-agents.md](skills-and-agents.md) for a map of how skills and agents relate.
 
 ### How do I test my changes before opening a PR?
 
-Run `./install.sh` from your local clone — the script detects a local `geo/SKILL.md` and installs from the working directory rather than cloning from GitHub. Open Claude Code and exercise the affected commands against a real URL. Verify that all status checks pass before submitting your pull request, as noted in `CONTRIBUTING.md`.
+Run `.\install-win.ps1` (or `./install.sh` on POSIX) from your local clone to provision the venv and the local data directory, then exercise the affected commands against a real URL. Verify that all status checks pass before submitting your pull request, as noted in `CONTRIBUTING.md`.
 
 ### Where do I report bugs or request features?
 

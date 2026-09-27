@@ -19,9 +19,9 @@ The GEO Score is a single composite number from 0 to 100 that summarises how wel
 
 ## How the composite score is computed
 
-Each subagent returns a sub-score on a 0–100 scale. The orchestrator in [`skills/geo-audit/SKILL.md`](../skills/geo-audit/SKILL.md) multiplies each sub-score by its weight and sums the results.
+Each subagent returns a sub-score on a 0–100 scale. The orchestrator in [`.agents/skills/geo-audit/SKILL.md`](../.agents/skills/geo-audit/SKILL.md) multiplies each sub-score by its weight and sums the results.
 
-**Formula (from `skills/geo-audit/SKILL.md`):**
+**Formula (from `.agents/skills/geo-audit/SKILL.md`):**
 
 ```
 GEO_Score = (Citability   * 0.25)
@@ -48,7 +48,7 @@ geo_score = sum(sub_scores[k] * w for k, w in weights.items())
 # geo_score is in [0, 100]
 ```
 
-**Score interpretation (from `skills/geo-audit/SKILL.md`):**
+**Score interpretation (from `.agents/skills/geo-audit/SKILL.md`):**
 
 | Range | Rating | Meaning |
 |---|---|---|

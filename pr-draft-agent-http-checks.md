@@ -4,8 +4,8 @@
 
 Adds two **agent-readiness** checks to `geo-technical`:
 
-1. **Markdown content negotiation** (new Step 10 in `agents/geo-technical.md`, new Category 9 in `skills/geo-technical/SKILL.md`) — sends a GET with `Accept: text/markdown` and checks whether the server responds with `Content-Type: text/markdown`. One additional HTTP request per audit.
-2. **RFC 8288 Link headers** (extended Step 1 in `agents/geo-technical.md`, added to Category 9 in `skills/geo-technical/SKILL.md`) — parses `Link:` response headers from the existing homepage fetch to detect machine-readable service discovery. Zero extra requests.
+1. **Markdown content negotiation** (new Step 10 in `agents/geo-technical.md`, new Category 9 in `.agents/skills/geo-technical/SKILL.md`) — sends a GET with `Accept: text/markdown` and checks whether the server responds with `Content-Type: text/markdown`. One additional HTTP request per audit.
+2. **RFC 8288 Link headers** (extended Step 1 in `agents/geo-technical.md`, added to Category 9 in `.agents/skills/geo-technical/SKILL.md`) — parses `Link:` response headers from the existing homepage fetch to detect machine-readable service discovery. Zero extra requests.
 
 Both checks are non-scoring. They produce a pass or a recommendation, never a deduction.
 
@@ -20,7 +20,7 @@ Identified while auditing [isitagentready.com](https://isitagentready.com/), a C
 ## What changed
 
 - **`agents/geo-technical.md`** — Step 1 extended to capture `Link:` headers from the existing homepage fetch. New Step 10 adds the Markdown content negotiation check and surfaces RFC 8288 findings under "Agent-Readiness Signals."
-- **`skills/geo-technical/SKILL.md`** — New Category 9 (Agent-Readiness Signals) covering both checks, with output template for the report section.
+- **`.agents/skills/geo-technical/SKILL.md`** — New Category 9 (Agent-Readiness Signals) covering both checks, with output template for the report section.
 - **`specs/agent-readiness-checks.md`** — Full spec for these checks (and the Content Signals check in a separate PR).
 - **`tests/agent-readiness-test-results.md`** — Test results covering Markdown negotiation and RFC 8288 across 4 sites.
 
@@ -58,7 +58,7 @@ Notable finding: Markdown negotiation appears to be active on both `developers.c
 
 ## Files in this PR
 
-- `skills/geo-technical/SKILL.md`
+- `.agents/skills/geo-technical/SKILL.md`
 - `agents/geo-technical.md`
 - `specs/agent-readiness-checks.md`
 - `tests/agent-readiness-test-results.md`

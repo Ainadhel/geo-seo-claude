@@ -5,7 +5,6 @@ description: >
   Content quality specialist evaluating E-E-A-T signals (Experience, Expertise,
   Authoritativeness, Trustworthiness), content depth, readability, AI content
   detection, and topical authority.
-allowed-tools: Read, Bash, WebFetch, Write, Glob, Grep
 ---
 
 # GEO Content Quality Agent

@@ -5,7 +5,6 @@ description: >
   GEO specialist analyzing AI search visibility: citability scoring, AI crawler
   access, llms.txt compliance, and brand mention presence across AI-cited platforms.
   Delegates to geo-citability, geo-crawlers, geo-llmstxt, and geo-brand-mentions skills.
-allowed-tools: Read, Bash, WebFetch, Write, Glob, Grep
 ---
 
 # GEO AI Visibility Agent
@@ -115,7 +114,7 @@ Search for the brand/site name across platforms frequently cited by AI models:
 3. **Wikipedia (CRITICAL — use API check, not just web search)**:
    - **FIRST**, run the Wikipedia API directly via Bash to check definitively:
      ```bash
-     python3 -c "
+     .venv/Scripts/python.exe -c "
      import requests; from urllib.parse import quote_plus
      brand='[BRAND_NAME]'
      r=requests.get(f'https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={quote_plus(brand)}&format=json', headers={'User-Agent':'GEO-Audit/1.0'}, timeout=15)

@@ -8,7 +8,7 @@ See [commands-reference.md](commands-reference.md) for the full slash-command re
 
 ## Orchestrator
 
-- **geo** (`geo/SKILL.md`) — Entry point for all GEO commands. Detects business type, dispatches sub-skills for individual commands, and coordinates the three-phase full-audit flow: discovery, parallel subagent delegation, and score synthesis. Produces a composite GEO Score (0–100) weighted across six categories.
+- **geo** (`.agents/skills/geo/SKILL.md`) — Entry point for all GEO commands. Detects business type, dispatches sub-skills for individual commands, and coordinates the three-phase full-audit flow: discovery, parallel subagent delegation, and score synthesis. Produces a composite GEO Score (0–100) weighted across six categories.
 
 ---
 
@@ -184,11 +184,11 @@ See [commands-reference.md](commands-reference.md) for `/geo report-pdf`.
 
 ### geo-prospect
 
-**Purpose:** CRM-lite for managing GEO agency prospects through a five-stage sales pipeline (lead → qualified → proposal → won → lost). Persists all data in `~/.geo-prospects/prospects.json`.
+**Purpose:** CRM-lite for managing GEO agency prospects through a five-stage sales pipeline (lead → qualified → proposal → won → lost). Persists all data in `.data/geo-prospects/prospects.json`.
 
 **Inputs:** Domain names, contact details, status updates, and notes entered via sub-commands.
 
-**Outputs:** Updates to `prospects.json`; audit snapshots in `~/.geo-prospects/audits/`; pipeline summary table printed to terminal.
+**Outputs:** Updates to `prospects.json`; audit snapshots in `.data/geo-prospects/audits/`; pipeline summary table printed to terminal.
 
 **Key sub-commands:** `new`, `list`, `show`, `audit`, `note`, `status`, `won`, `lost`, `pipeline`.
 
@@ -202,9 +202,9 @@ See [commands-reference.md](commands-reference.md) for `/geo prospect`.
 
 **Purpose:** Auto-generates a client-ready GEO service proposal from audit data, including executive summary, score breakdown, three service tiers with pricing, ROI projection, and engagement timeline.
 
-**Inputs:** Domain name or path to an existing audit file. Reads prospect record from `~/.geo-prospects/prospects.json` if available.
+**Inputs:** Domain name or path to an existing audit file. Reads prospect record from `.data/geo-prospects/prospects.json` if available.
 
-**Outputs:** `~/.geo-prospects/proposals/<domain>-proposal-<date>.md` — a complete proposal ready to send. Also updates the prospect record status to `proposal`.
+**Outputs:** `.data/geo-prospects/proposals/<domain>-proposal-<date>.md` — a complete proposal ready to send. Also updates the prospect record status to `proposal`.
 
 **Tier recommendation logic:** Score 0–40 → Premium (€9,500/mo); 41–60 → Standard (€5,000/mo); 61–75 → Basic (€2,500/mo).
 
@@ -216,9 +216,9 @@ See [commands-reference.md](commands-reference.md) for `/geo proposal`.
 
 **Purpose:** Generates a monthly delta report comparing two GEO audits (baseline vs. current), tracking score improvements across all categories and action-item completion status.
 
-**Inputs:** A domain name or two audit file paths. Reads files from `~/.geo-prospects/audits/` sorted by date if only domain is provided.
+**Inputs:** A domain name or two audit file paths. Reads files from `.data/geo-prospects/audits/` sorted by date if only domain is provided.
 
-**Outputs:** `~/.geo-prospects/reports/<domain>-monthly-<YYYY-MM>.md` — score progress bar, before/after breakdown table, platform and crawler delta tables, action plan status, wins section, new issues discovered, and 6-month trajectory.
+**Outputs:** `.data/geo-prospects/reports/<domain>-monthly-<YYYY-MM>.md` — score progress bar, before/after breakdown table, platform and crawler delta tables, action plan status, wins section, new issues discovered, and 6-month trajectory.
 
 See [commands-reference.md](commands-reference.md) for `/geo compare`.
 
@@ -317,7 +317,7 @@ These five agents run simultaneously during a `/geo audit` to reduce total runti
 | `scripts/brand_scanner.py` | Checks brand presence across AI-cited platforms (YouTube, Reddit, Wikipedia, LinkedIn). Provides per-platform check functions and instructions for WebFetch-based verification. Requires `requests` and `beautifulsoup4`. | geo-brand-mentions |
 | `scripts/llmstxt_generator.py` | Validates an existing `llms.txt` against the spec (H1 title, blockquote description, H2 sections, absolute URLs, descriptions) and generates a new file from site crawl data. | geo-llmstxt |
 | `scripts/generate_pdf_report.py` | Generates a multi-page PDF from a JSON audit data file using ReportLab. Renders score gauges, bar charts, color-coded tables, and an action plan. Accepts the JSON file path as a CLI argument or via stdin. Requires `reportlab`. | geo-report-pdf |
-| `scripts/crm_dashboard.py` | Renders a rich terminal dashboard for the prospect CRM. Reads `~/.geo-prospects/prospects.json` and displays pipeline stages, MRR, and prospect detail views. Requires `rich`. | geo-prospect |
+| `scripts/crm_dashboard.py` | Renders a rich terminal dashboard for the prospect CRM. Reads `.data/geo-prospects/prospects.json` and displays pipeline stages, MRR, and prospect detail views. Requires `rich`. | geo-prospect |
 
 ---
 

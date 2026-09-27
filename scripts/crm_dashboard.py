@@ -35,9 +35,15 @@ except ImportError:
     sys.exit(1)
 
 # ── Paths ─────────────────────────────────────────────────────────────
-CRM_PATH = Path.home() / ".geo-prospects" / "prospects.json"
-AUDITS_DIR = Path.home() / ".geo-prospects" / "audits"
-PROPOSALS_DIR = Path.home() / ".geo-prospects" / "proposals"
+# Prospect data lives inside the working folder (.data/geo-prospects/), not in
+# the user profile. Override with the GEO_PROSPECTS_DIR environment variable.
+GEO_ROOT = Path(
+    os.environ.get("GEO_PROSPECTS_DIR")
+    or Path(__file__).resolve().parent.parent / ".data" / "geo-prospects"
+)
+CRM_PATH = GEO_ROOT / "prospects.json"
+AUDITS_DIR = GEO_ROOT / "audits"
+PROPOSALS_DIR = GEO_ROOT / "proposals"
 
 console = Console()
 

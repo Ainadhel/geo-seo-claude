@@ -21,9 +21,15 @@ app = Flask(__name__)
 def inject_now():
     return {"now": datetime.now().strftime("%Y-%m-%d %H:%M")}
 
-CRM_PATH = Path.home() / ".geo-prospects" / "prospects.json"
-PROPOSALS_DIR = Path.home() / ".geo-prospects" / "proposals"
-AUDITS_DIR = Path.home() / ".geo-prospects" / "audits"
+# Prospect data lives inside the working folder (.data/geo-prospects/), not in
+# the user profile. Override with the GEO_PROSPECTS_DIR environment variable.
+GEO_ROOT = Path(
+    os.environ.get("GEO_PROSPECTS_DIR")
+    or Path(__file__).resolve().parent.parent.parent / ".data" / "geo-prospects"
+)
+CRM_PATH = GEO_ROOT / "prospects.json"
+PROPOSALS_DIR = GEO_ROOT / "proposals"
+AUDITS_DIR = GEO_ROOT / "audits"
 
 
 # ── Helpers ────────────────────────────────────────────────────────────
