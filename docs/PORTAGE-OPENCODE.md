@@ -407,4 +407,5 @@ Décisions prises, non exécutées. Ne pas les considérer comme des oublis.
   en l'état, ils ne sont pas encore branchés sur le mécanisme de dispatch d'OpenCode.
 - **Couche agence vers Baserow.** `geo-prospect`, `geo-proposal`, `crm_dashboard.py`,
   `scripts/webapp/` et `white-label/` sont portés tels quels, sans lien vers les outils du vault.
-- **Recouvrement avec la stack GEO FFC.** Hors périmètre. Rien n'a été fusionné ni renommé.
+- **Recouvrement avec la stack GEO d'un autre projet client.** Hors périmètre. Rien
+  n'a été fusionné ni renommé. L'arbitrage est rendu dans le dossier du client.
