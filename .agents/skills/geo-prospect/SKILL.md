@@ -8,7 +8,6 @@ description: >
   "aggiungi cliente", or when managing the business side of GEO services.
 version: 1.0.0
 tags: [geo, business, crm, prospect, pipeline, sales]
-allowed-tools: Read, Write, Bash, Glob
 ---
 
 # GEO Prospect Manager
@@ -16,7 +15,7 @@ allowed-tools: Read, Write, Bash, Glob
 ## Purpose
 
 Manage GEO agency prospects and clients through the full sales lifecycle.
-All data is stored in `~/.geo-prospects/prospects.json` (persistent across sessions).
+All data is stored in `.data/geo-prospects/prospects.json` (persistent across sessions).
 
 ---
 
@@ -53,8 +52,8 @@ Each prospect is stored as a JSON record:
   "status": "qualified",
   "geo_score": 32,
   "audit_date": "2026-03-12",
-  "audit_file": "~/.geo-prospects/audits/electron-srl.com-2026-03-12.md",
-  "proposal_file": "~/.geo-prospects/proposals/electron-srl.com-proposal.md",
+  "audit_file": ".data/geo-prospects/audits/electron-srl.com-2026-03-12.md",
+  "proposal_file": ".data/geo-prospects/proposals/electron-srl.com-proposal.md",
   "monthly_value": 0,
   "contract_start": null,
   "contract_months": 0,
@@ -75,7 +74,7 @@ Each prospect is stored as a JSON record:
 
 ### `/geo prospect new <domain>`
 
-1. Check if `~/.geo-prospects/prospects.json` exists, create if not (empty array)
+1. Check if `.data/geo-prospects/prospects.json` exists, create if not (empty array)
 2. Auto-detect company name from domain (e.g., `electron-srl.com` → `Electron Srl`)
 3. Assign next sequential ID: `PRO-001`, `PRO-002`, etc.
 4. Ask user for:
@@ -88,7 +87,7 @@ Each prospect is stored as a JSON record:
 
 ### `/geo prospect list`
 
-Read `~/.geo-prospects/prospects.json` and render a summary table:
+Read `.data/geo-prospects/prospects.json` and render a summary table:
 
 ```
 GEO Prospect Pipeline — March 2026
@@ -109,7 +108,7 @@ Committed MRR: €6,000 | Pipeline Value: €4,500
 
 1. Run `/geo quick <domain>` to get GEO snapshot score
 2. Save score to prospect record: `geo_score`, `audit_date`
-3. Save audit output to `~/.geo-prospects/audits/<domain>-<date>.md`
+3. Save audit output to `.data/geo-prospects/audits/<domain>-<date>.md`
 4. Update `audit_file` path in prospect record
 5. Add auto-note: "Quick audit run. GEO Score: XX/100."
 6. If score < 55: suggest "Score indicates strong sales opportunity. Run `/geo proposal <domain>` to generate proposal."
@@ -160,9 +159,9 @@ Next actions:
 
 ## Storage Location
 
-All data stored in `~/.geo-prospects/`:
+All data stored in `.data/geo-prospects/`:
 ```
-~/.geo-prospects/
+.data/geo-prospects/
 ├── prospects.json          # Main CRM database
 ├── audits/                 # Quick audit snapshots
 │   └── electron-srl.com-2026-03-12.md
@@ -170,7 +169,7 @@ All data stored in `~/.geo-prospects/`:
     └── electron-srl.com-proposal.md
 ```
 
-Create directory if it does not exist: `mkdir -p ~/.geo-prospects/audits ~/.geo-prospects/proposals`
+Create directory if it does not exist: `mkdir -p .data/geo-prospects/audits .data/geo-prospects/proposals`
 
 ---
 

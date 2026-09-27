@@ -1,10 +1,6 @@
 ---
 name: geo-update
 description: Pull the latest GEO-SEO skill updates from the upstream repository. Compares installed files against the latest release, shows what changed, and updates all skills, agents, scripts, and schema templates in place.
-allowed-tools:
-  - Bash
-  - Read
-  - Write
 ---
 
 # GEO-SEO Update Skill
@@ -17,20 +13,34 @@ Updates the locally installed GEO-SEO skills, agents, scripts, and schema templa
 
 ## Update Workflow
 
-### Step 1: Determine Installed Location
+### Step 1: Determine the Working Folder Layout
 
-The GEO-SEO toolkit installs to these locations under `~/.claude/`:
+This fork runs from a local clone, not from an install into `~/.claude/`. The toolkit lives at
+these paths, all relative to the repository root:
 
-| Component | Install Path |
-|-----------|-------------|
-| Main skill | `~/.claude/skills/geo/` |
-| Sub-skills | `~/.claude/skills/geo-*/` |
-| Agents | `~/.claude/agents/geo-*.md` |
-| Scripts | `~/.claude/skills/geo/scripts/` |
-| Schema templates | `~/.claude/skills/geo/schema/` |
-| Hooks | `~/.claude/skills/geo/hooks/` |
+| Component | Path |
+|-----------|------|
+| Main skill | `.agents/skills/geo/` |
+| Sub-skills | `.agents/skills/geo-*/` |
+| Agents | `agents/geo-*.md` |
+| Scripts | `scripts/` |
+| Schema templates | `schema/` |
+| Report templates | `templates/` |
+| Virtual environment | `.venv/` |
+| Prospect data | `.data/geo-prospects/` |
 
-Verify the installation exists by checking for `~/.claude/skills/geo/SKILL.md`. If it does not exist, inform the user that GEO-SEO is not installed and suggest running the installer instead.
+Verify the working folder by checking that `.agents/skills/geo/SKILL.md` exists. If it does not,
+tell the user this is not a geo-seo-claude checkout and stop.
+
+**Upstream layout differs.** The upstream repository still uses `skills/` for the sub-skills and
+`geo/` for the orchestrator. A raw copy from upstream will therefore land in the wrong place and
+will resurrect the old layout. Apply the mapping below on every update. See
+`docs/PORTAGE-OPENCODE.md` for the full reconciliation procedure.
+
+| Upstream | This working folder |
+|----------|---------------------|
+| `geo/` | `.agents/skills/geo/` |
+| `skills/geo-*/` | `.agents/skills/geo-*/` |
 
 ### Step 2: Clone Latest from Upstream
 
@@ -39,13 +49,15 @@ TEMP_DIR=$(mktemp -d)
 git clone --depth 1 https://github.com/zubair-trabzada/geo-seo-claude.git "$TEMP_DIR/repo"
 ```
 
-If the clone fails, report the error and stop. Do not modify any installed files.
+If the clone fails, report the error and stop. Do not modify any file in the working folder.
 
-### Step 3: Compare Installed vs Latest
+### Step 3: Compare Working Folder vs Latest
 
 Before copying files, generate a diff summary so the user knows what will change:
 
-1. For each component directory, compare the installed files against the cloned files using `diff --recursive --brief`.
+1. Compare each component against the cloned files, using `diff -rq` between the upstream source
+   path and its mapped destination path (`$SOURCE_DIR/geo` against `.agents/skills/geo`, and
+   `$SOURCE_DIR/skills/<name>` against `.agents/skills/<name>`).
 2. Categorise changes as:
    - **New files** — exist in upstream but not locally
    - **Modified files** — exist in both but differ
@@ -54,52 +66,60 @@ Before copying files, generate a diff summary so the user knows what will change
 
 ### Step 4: Apply Updates
 
-Copy files from the cloned repo over the installed locations:
+Copy files from the cloned repo over the mapped destinations, never over the upstream paths:
 
 ```bash
-CLAUDE_DIR="${HOME}/.claude"
 SOURCE_DIR="$TEMP_DIR/repo"
+DEST_DIR="$(pwd)"
 
-# Main skill
-cp -r "$SOURCE_DIR/geo/"* "$CLAUDE_DIR/skills/geo/"
+# Main skill: upstream geo/ -> .agents/skills/geo/
+mkdir -p "$DEST_DIR/.agents/skills/geo"
+cp -r "$SOURCE_DIR/geo/"* "$DEST_DIR/.agents/skills/geo/"
 
-# Sub-skills
+# Sub-skills: upstream skills/ -> .agents/skills/
 for skill_dir in "$SOURCE_DIR/skills"/*/; do
     skill_name=$(basename "$skill_dir")
-    mkdir -p "$CLAUDE_DIR/skills/${skill_name}"
-    cp -r "$skill_dir"* "$CLAUDE_DIR/skills/${skill_name}/"
+    mkdir -p "$DEST_DIR/.agents/skills/${skill_name}"
+    cp -r "$skill_dir"* "$DEST_DIR/.agents/skills/${skill_name}/"
 done
 
 # Agents
 for agent_file in "$SOURCE_DIR/agents/"*.md; do
-    cp "$agent_file" "$CLAUDE_DIR/agents/"
+    cp "$agent_file" "$DEST_DIR/agents/"
 done
 
 # Scripts
 if [ -d "$SOURCE_DIR/scripts" ]; then
-    cp -r "$SOURCE_DIR/scripts/"* "$CLAUDE_DIR/skills/geo/scripts/"
-    chmod +x "$CLAUDE_DIR/skills/geo/scripts/"*.py 2>/dev/null || true
+    cp -r "$SOURCE_DIR/scripts/"* "$DEST_DIR/scripts/"
+    chmod +x "$DEST_DIR/scripts/"*.py 2>/dev/null || true
 fi
 
 # Schema templates
 if [ -d "$SOURCE_DIR/schema" ]; then
-    cp -r "$SOURCE_DIR/schema/"* "$CLAUDE_DIR/skills/geo/schema/"
+    cp -r "$SOURCE_DIR/schema/"* "$DEST_DIR/schema/"
 fi
 
-# Hooks
-if [ -d "$SOURCE_DIR/hooks" ] && [ "$(ls -A "$SOURCE_DIR/hooks" 2>/dev/null)" ]; then
-    mkdir -p "$CLAUDE_DIR/skills/geo/hooks"
-    cp -r "$SOURCE_DIR/hooks/"* "$CLAUDE_DIR/skills/geo/hooks/"
-    chmod +x "$CLAUDE_DIR/skills/geo/hooks/"* 2>/dev/null || true
+# Report templates
+if [ -d "$SOURCE_DIR/templates" ]; then
+    cp -r "$SOURCE_DIR/templates/"* "$DEST_DIR/templates/"
 fi
 ```
 
+After copying, re-apply the port rewrites to the files that were just overwritten, otherwise the
+updated files will reintroduce `~/.claude` paths and the `allowed-tools` frontmatter field:
+
+- `python3 ~/.claude/skills/geo/scripts/` becomes `.venv/Scripts/python.exe scripts/` on Windows,
+  `.venv/bin/python3 scripts/` on POSIX
+- `~/.claude/skills/geo/templates/` becomes `templates/`
+- `~/.geo-prospects/` becomes `.data/geo-prospects/`
+- the `allowed-tools:` key is removed from every `SKILL.md` frontmatter
+
 ### Step 5: Update Python Dependencies
 
-If `requirements.txt` exists in the upstream repo and differs from the installed version:
+If `requirements.txt` exists in the upstream repo and differs from the working folder version:
 
-```bash
-python3 -m pip install -r "$SOURCE_DIR/requirements.txt" --quiet
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt --quiet
 ```
 
 Report any failures but do not treat them as fatal.
@@ -131,7 +151,8 @@ If there were removed files upstream, list them and suggest the user review whet
 
 ## Important Notes
 
-- **Never delete locally installed files** that no longer exist upstream. The user may have customised them. List them and let the user decide.
-- **Never modify `~/.claude/settings.json` or `~/.claude/settings.local.json`** — these are user configuration files, not part of the GEO-SEO toolkit.
+- **Never delete locally customised files** that no longer exist upstream. The user may have changed them. List them and let the user decide.
+- **Never write outside the working folder.** No copy may land in `~/.claude/`, in the user profile, or in any other project. The path mapping in Step 1 is what guarantees this.
+- **Re-apply the port rewrites after every copy** (end of Step 4). A verbatim upstream file reintroduces `~/.claude` paths and the `allowed-tools` frontmatter field, both of which are wrong here.
 - **If already up to date** (no diff), report that and skip the copy step.
-- **Restart notice:** Remind the user that skill changes take effect in new Claude Code sessions. They should restart their session to use the updated skills.
+- **Restart notice:** Remind the user that skill changes take effect in new agent sessions. They should restart their session to pick up the updated skills.

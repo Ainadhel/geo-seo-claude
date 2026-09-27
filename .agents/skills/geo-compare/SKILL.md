@@ -8,7 +8,6 @@ description: >
   "confronta", "progressi", "report mensile", or when running a monthly client check-in.
 version: 1.0.0
 tags: [geo, business, delta, monthly, reporting, client, progress]
-allowed-tools: Read, Write, Bash, Glob
 ---
 
 # GEO Monthly Delta Report Generator
@@ -32,7 +31,7 @@ score is proof of value. This skill generates the "here's your progress" report.
 **Examples:**
 ```
 /geo compare electron-srl.com
-/geo compare ~/.geo-prospects/audits/electron-srl.com-2026-01-15.md ~/.geo-prospects/audits/electron-srl.com-2026-03-12.md
+/geo compare .data/geo-prospects/audits/electron-srl.com-2026-01-15.md .data/geo-prospects/audits/electron-srl.com-2026-03-12.md
 ```
 
 ---
@@ -42,7 +41,7 @@ score is proof of value. This skill generates the "here's your progress" report.
 ### Step 1: Find Audit Files
 
 If only domain is provided:
-1. Look in `~/.geo-prospects/audits/` for files matching `<domain>-*.md`
+1. Look in `.data/geo-prospects/audits/` for files matching `<domain>-*.md`
 2. Sort by date
 3. Use oldest as baseline, newest as current
 4. If only one file exists: use it as baseline, run a fresh quick audit as current
@@ -67,7 +66,7 @@ For each metric:
 
 ### Step 4: Generate Monthly Report
 
-Output to `~/.geo-prospects/reports/<domain>-monthly-<date>.md`
+Output to `.data/geo-prospects/reports/<domain>-monthly-<date>.md`
 
 ---
 
@@ -293,10 +292,10 @@ fresh audit that weren't visible before. Frame declines as "newly discovered opp
 
 ## Output
 
-1. Save report to `~/.geo-prospects/reports/<domain>-monthly-<YYYY-MM>.md`
+1. Save report to `.data/geo-prospects/reports/<domain>-monthly-<YYYY-MM>.md`
 2. Print confirmation with key stats:
    ```
-   ✓ Monthly report generated: ~/.geo-prospects/reports/electron-srl.com-monthly-2026-03.md
+   ✓ Monthly report generated: .data/geo-prospects/reports/electron-srl.com-monthly-2026-03.md
 
    SUMMARY:
    GEO Score: 32 → 44 (+12 points) ▲

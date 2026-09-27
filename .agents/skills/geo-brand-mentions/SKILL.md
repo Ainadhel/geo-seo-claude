@@ -1,13 +1,6 @@
 ---
 name: geo-brand-mentions
 description: Brand mention and authority scanner for AI visibility. Analyzes brand presence across platforms that AI models rely on for entity recognition and citation decisions. Produces a Brand Authority Score (0-100) with platform-specific recommendations.
-allowed-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
-  - WebFetch
-  - Write
 ---
 
 # Brand Mention Scanner Skill
@@ -242,7 +235,7 @@ For each platform, use WebFetch to search and assess presence:
 
 **Method 1 — Python API check (MOST RELIABLE, do this FIRST):**
 ```bash
-python3 -c "
+.venv/Scripts/python.exe -c "
 import requests, json
 from urllib.parse import quote_plus
 brand = '[Brand_Name]'

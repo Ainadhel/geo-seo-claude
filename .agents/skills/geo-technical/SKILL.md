@@ -4,7 +4,6 @@ description: Technical SEO audit with GEO-specific checks — crawlability, inde
 version: 1.0.0
 author: geo-seo-claude
 tags: [geo, technical-seo, core-web-vitals, ssr, crawlability, security, performance]
-allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 ---
 
 # GEO Technical SEO Audit
@@ -280,9 +279,16 @@ AI crawlers (GPTBot, PerplexityBot, ClaudeBot, etc.) do **NOT execute JavaScript
 Even Googlebot, which does execute JavaScript, deprioritizes JS-rendered content due to the additional crawl budget required. Google processes JS rendering in a separate "rendering queue" that can delay indexing by days or weeks.
 
 ### Detection Method
-1. Fetch the page with curl (no JavaScript execution): `curl -s [URL]`
+1. Fetch the raw HTML with no JavaScript execution. Under PowerShell:
+   ```powershell
+   (Invoke-WebRequest -Uri "[URL]" -UseBasicParsing).Content
+   ```
+   The POSIX equivalent is `curl -s [URL]`. For the full structured parse, prefer the project venv:
+   ```powershell
+   .\.venv\Scripts\python.exe scripts\fetch_page.py [URL]
+   ```
 2. Compare the raw HTML to the rendered DOM (via browser)
-3. If key content (headings, paragraphs, product info, article text) is MISSING from the curl output, the site relies on client-side rendering
+3. If key content (headings, paragraphs, product info, article text) is MISSING from the raw HTML, the site relies on client-side rendering
 
 ### What to Check
 - **Main content text**: Is the article body / product description / page content in the raw HTML?
@@ -320,7 +326,14 @@ Even Googlebot, which does execute JavaScript, deprioritizes JS-rendered content
 
 ### 8.1 Time to First Byte (TTFB)
 - Target: **< 800ms** (ideally < 200ms)
-- Measure with curl: `curl -o /dev/null -s -w 'TTFB: %{time_starttransfer}s\n' [URL]`
+- Measure under PowerShell:
+  ```powershell
+  $r = Invoke-WebRequest -Uri "[URL]" -UseBasicParsing
+  [math]::Round(($r.RawContentLength / 1MB), 2)
+  (Invoke-WebRequest -Uri "[URL]" -UseBasicParsing).Headers
+  ```
+  For a true TTFB measurement, `curl` remains the practical tool and is usually available through
+  Git for Windows or WSL: `curl -o /dev/null -s -w 'TTFB: %{time_starttransfer}s\n' [URL]`
 - If TTFB > 800ms: check server location, caching, database queries, CDN usage
 
 ### 8.2 Resource Optimization

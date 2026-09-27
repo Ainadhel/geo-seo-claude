@@ -8,7 +8,6 @@ description: >
   or after completing a GEO audit for a prospect.
 version: 1.0.0
 tags: [geo, business, proposal, sales, pricing, client]
-allowed-tools: Read, Write, Bash, Glob, WebFetch
 ---
 
 # GEO Proposal Generator
@@ -34,7 +33,7 @@ Generate a fully customized, client-ready GEO service proposal that:
 ```
 /geo proposal electron-srl.com
 /geo proposal electron-srl.com --tier standard --client-name "Electron Srl"
-/geo proposal ~/.geo-prospects/audits/electron-srl.com-2026-03-12.md
+/geo proposal .data/geo-prospects/audits/electron-srl.com-2026-03-12.md
 ```
 
 ---
@@ -43,7 +42,7 @@ Generate a fully customized, client-ready GEO service proposal that:
 
 ### Step 1: Load Audit Data
 
-1. Check if `~/.geo-prospects/audits/<domain>*.md` exists
+1. Check if `.data/geo-prospects/audits/<domain>*.md` exists
 2. If not, suggest running `/geo quick <domain>` first
 3. Extract from audit:
    - GEO Score (overall and per-category)
@@ -66,8 +65,8 @@ Auto-fill proposal template with:
 
 ### Step 3: Generate Proposal File
 
-Output to `~/.geo-prospects/proposals/<domain>-proposal-<date>.md`
-Also update prospect record if it exists in `~/.geo-prospects/prospects.json`
+Output to `.data/geo-prospects/proposals/<domain>-proposal-<date>.md`
+Also update prospect record if it exists in `.data/geo-prospects/prospects.json`
 
 ---
 
@@ -325,11 +324,11 @@ are based on current industry best practices for Generative Engine Optimization.
 
 ## Output
 
-1. Save proposal to `~/.geo-prospects/proposals/<domain>-proposal-<date>.md`
+1. Save proposal to `.data/geo-prospects/proposals/<domain>-proposal-<date>.md`
 2. Update prospect record: set `status` to `proposal`, save `proposal_file` path
 3. Print confirmation:
    ```
-   ✓ Proposal generated: ~/.geo-prospects/proposals/electron-srl.com-proposal-2026-03-12.md
+   ✓ Proposal generated: .data/geo-prospects/proposals/electron-srl.com-proposal-2026-03-12.md
    ✓ Prospect status updated: Qualified → Proposal
    ✓ Recommended package: STANDARD (€5,000/month) — Score 32/100
 

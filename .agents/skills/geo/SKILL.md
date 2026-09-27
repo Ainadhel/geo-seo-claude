@@ -9,10 +9,9 @@ description: >
   client-ready GEO report generation. Use when user says "geo", "seo", "audit",
   "AI search", "AI visibility", "optimize", "citability", "llms.txt", "schema",
   "brand mentions", "GEO report", or any URL for analysis.
-allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 ---
 
-# GEO-SEO Analysis Tool — Claude Code Skill (February 2026)
+# GEO-SEO Analysis Tool, OpenCode Skill
 
 > **Philosophy:** GEO-first, SEO-supported. AI search is eating traditional search.
 > This tool optimizes for where traffic is going, not where it was.
@@ -65,7 +64,13 @@ allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 ### Full Audit (`/geo audit <url>`)
 
 **Phase 1: Discovery (Sequential)**
-1. Fetch homepage HTML (curl or WebFetch)
+1. Fetch homepage HTML. Preferred: the project venv, which returns structured JSON including the
+   raw `<head>`:
+   ```powershell
+   .\.venv\Scripts\python.exe scripts\fetch_page.py <url>
+   ```
+   On POSIX use `.venv/bin/python3 scripts/fetch_page.py <url>`. A WebFetch fallback is available
+   when the venv is not provisioned, but it strips `<head>`, so it cannot be used for schema work.
 2. Detect business type (SaaS, Local, E-commerce, Publisher, Agency, Other)
 3. Extract key pages from sitemap.xml or internal links (up to 50 pages)
 
@@ -120,20 +125,20 @@ Adjust recommendations based on detected type. Local businesses need LocalBusine
 
 | # | Skill | Directory | Purpose |
 |---|-------|-----------|---------|
-| 1 | geo-audit | `skills/geo-audit/` | Full audit orchestration and scoring |
-| 2 | geo-citability | `skills/geo-citability/` | Passage-level AI citation readiness |
-| 3 | geo-crawlers | `skills/geo-crawlers/` | AI crawler access and robots.txt |
-| 4 | geo-llmstxt | `skills/geo-llmstxt/` | llms.txt standard analysis and generation |
-| 5 | geo-brand-mentions | `skills/geo-brand-mentions/` | Brand presence on AI-cited platforms |
-| 6 | geo-platform-optimizer | `skills/geo-platform-optimizer/` | Platform-specific AI search optimization |
-| 7 | geo-schema | `skills/geo-schema/` | Structured data for AI discoverability |
-| 8 | geo-technical | `skills/geo-technical/` | Technical SEO foundations |
-| 9 | geo-content | `skills/geo-content/` | Content quality and E-E-A-T |
-| 10 | geo-report | `skills/geo-report/` | Client-ready deliverable generation |
-| 11 | geo-prospect | `skills/geo-prospect/` | CRM-lite prospect and client pipeline management |
-| 12 | geo-proposal | `skills/geo-proposal/` | Auto-generate client proposals from audit data |
-| 13 | geo-compare | `skills/geo-compare/` | Monthly delta tracking and progress reports |
-| 14 | geo-update | `skills/geo-update/` | Pull latest updates from upstream repository |
+| 1 | geo-audit | `.agents/skills/geo-audit/` | Full audit orchestration and scoring |
+| 2 | geo-citability | `.agents/skills/geo-citability/` | Passage-level AI citation readiness |
+| 3 | geo-crawlers | `.agents/skills/geo-crawlers/` | AI crawler access and robots.txt |
+| 4 | geo-llmstxt | `.agents/skills/geo-llmstxt/` | llms.txt standard analysis and generation |
+| 5 | geo-brand-mentions | `.agents/skills/geo-brand-mentions/` | Brand presence on AI-cited platforms |
+| 6 | geo-platform-optimizer | `.agents/skills/geo-platform-optimizer/` | Platform-specific AI search optimization |
+| 7 | geo-schema | `.agents/skills/geo-schema/` | Structured data for AI discoverability |
+| 8 | geo-technical | `.agents/skills/geo-technical/` | Technical SEO foundations |
+| 9 | geo-content | `.agents/skills/geo-content/` | Content quality and E-E-A-T |
+| 10 | geo-report | `.agents/skills/geo-report/` | Client-ready deliverable generation |
+| 11 | geo-prospect | `.agents/skills/geo-prospect/` | CRM-lite prospect and client pipeline management |
+| 12 | geo-proposal | `.agents/skills/geo-proposal/` | Auto-generate client proposals from audit data |
+| 13 | geo-compare | `.agents/skills/geo-compare/` | Monthly delta tracking and progress reports |
+| 14 | geo-update | `.agents/skills/geo-update/` | Pull latest updates from upstream repository |
 
 ---
 
@@ -168,9 +173,9 @@ All commands generate structured output:
 | `/geo report` | `GEO-CLIENT-REPORT.md` (presentation-ready) |
 | `/geo report-pdf` | `GEO-REPORT.pdf` (professional PDF with charts) |
 | `/geo quick` | Inline summary (no file) |
-| `/geo prospect` | Updates `~/.geo-prospects/prospects.json` |
-| `/geo proposal` | `~/.geo-prospects/proposals/<domain>-proposal-<date>.md` |
-| `/geo compare` | `~/.geo-prospects/reports/<domain>-monthly-<YYYY-MM>.md` |
+| `/geo prospect` | Updates `.data/geo-prospects/prospects.json` |
+| `/geo proposal` | `.data/geo-prospects/proposals/<domain>-proposal-<date>.md` |
+| `/geo compare` | `.data/geo-prospects/reports/<domain>-monthly-<YYYY-MM>.md` |
 
 ---
 
@@ -192,7 +197,7 @@ No Python dependencies required for PDF generation.
 - **Styled code blocks** — JSON schema templates render with dark monospace theme
 
 ### Templates
-Bundled at `~/.claude/skills/geo/templates/`:
+Bundled at `templates/`:
 - `geo-report-style.css` — stylesheet (edit colors, fonts, layout here)
 - `geo-report-template.html` — pandoc HTML template (edit cover fields here)
 
@@ -202,8 +207,8 @@ Bundled at `~/.claude/skills/geo/templates/`:
    ```bash
    pandoc GEO-AUDIT-REPORT.md \
      --to html5 --standalone --embed-resources \
-     --template ~/.claude/skills/geo/templates/geo-report-template.html \
-     --css ~/.claude/skills/geo/templates/geo-report-style.css \
+     --template templates/geo-report-template.html \
+     --css templates/geo-report-style.css \
      --metadata brand_name="..." --metadata geo_score="..." \
      -o GEO-REPORT.html
 
