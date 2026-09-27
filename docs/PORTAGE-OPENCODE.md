@@ -162,9 +162,11 @@ porte déjà un `separator` et n'a rien à corriger, et l'extraction du JSON-LD 
 recevoir de séparateur, sous peine de casser la charge utile.
 
 **Pourquoi c'est grave et pas cosmétique.** La perte d'espaces fausse tout l'aval du
-`citability_scorer.py` : `text.split()` compte de faux mots, donc `self_containment` est faux, et
-`re.split(r"[.!?]+", text)` ne segmentation plus en phrases, donc `answer_block_quality`, qui pèse
-30 % du score, est faux. Sur `https://www.fedecardio.org/`, la mesure avant correctif rendait une
+`citability_scorer.py`. `text.split()` compte de faux mots, donc `self_containment` est faux. Les
+mots soudés gonflaient aussi chaque phrase, donc `clarity_ratio` était faux, 0,6207 avant contre
+0,5517 après, 18 phrases dans la fenêtre courte de 5 à 25 mots contre 16, et `answer_block_quality`,
+qui pèse 30 % du score, était faux avec lui. Le nombre de phrases, lui, ne bouge pas, 29 avant et
+29 après : c'est le numérateur qui change, pas le dénominateur. Sur `https://www.fedecardio.org/`, la mesure avant correctif rendait une
 moyenne de 30,9 avec 0 passage de longueur optimale et 9 blocs en F sur 10, et les aperçus
 montraient `Informerles publics3 millions de brochuresdiffusées gratuitement`. Ce chiffre était un
 artefact, pas une mesure.
